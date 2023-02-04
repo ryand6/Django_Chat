@@ -1,33 +1,121 @@
 {% extends "base_bootstrap.html" %}
+{% load static %}
 {% block navbar %}
 {% load app_tags %}
-<nav class="navbar navbar-default navbar-inverse">
-  <div class="container-fluid">
-    <div class="navbar-header">
-        <a class="navbar-brand" href="/">{{ settings.APP_NAME }}</a>
-    </div>
-    <ul class="nav navbar-nav">
-        {% url 'chat' as chat %}
-        <li {% if request.get_full_path == chat %}class="active"{% endif %}>
-            <a href="{% url 'chat:all' %}">Chatroom</a>
-        </li>
-    </ul>
-    <ul class="nav navbar-nav navbar-right">
+<style>
+    .navbar-brand{
+        color: #ffffff;
+        margin-right: 1rem;
+    }
+    .navbar-brand:hover{
+        color: #c7abff;
+    }
+    .nav.navbar-nav.navbar-left{
+        align-content: start;
+    }
+    .navbar-left li a{
+        color: #ffffff;
+        margin-left: 2rem;
+    }
+    .navbar-left li a:hover{
+        color:#c7abff;
+        text-decoration: none;
+    }
+    .navbar-right a{
+        color: #ffffff;
+        margin-left: 1rem;
+    }
+    .dropdown-menu{
+        background-color: #5D3FD3;
+    }
+    .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 48;
+    }
+    .btn-group{
+        margin-right: 1rem;
+    }
+    #id_chat_notifications_icon{
+        font-size: 75%;
+    }
+    #id_friend_requests_icon{
+        font-size: 125%;
+        margin-right: 1rem;
+    }
+</style>
+<nav class="navbar navbar-default navbar-inverse shadow-sm">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="/">{{ settings.APP_NAME }}</a>
+        </div>
+        <div class="nav mr-auto">
+            <div class="navbar-left">
+                <ul class="navbar-nav mr-auto">
+                {% url 'publicchat' as publicchat %}
+                    <li {% if request.get_full_path == publicchat %}class="active"{% endif %}>
+                        <a href="{% url 'publicchat:all' %}">Public Chatroom</a>
+                        <span id="id_public_chat_notifications_count" class="notify-badge"></span>
+                        <span class="material-symbols-outlined" id="id_chat_notifications_icon">chat</span>
+                    </li>
+            </div>
+            <div class="navbar-left">
+                <ul class="navbar-nav mr-auto">
+                {% url 'privatechat' as privatechat %}
+                    <li {% if request.get_full_path == privatechat %}class="active"{% endif %}>
+                        <a href="{% url 'privatechat:all' %}">Other Chats</a>
+                        <span id="id_public_chat_notifications_count" class="notify-badge"></span>
+                        <span class="material-symbols-outlined" id="id_chat_notifications_icon">chat</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
         {% if user.is_authenticated %}
-        <li class="dropdown">
-            <a href="#" data-toggle="dropdown" class="dropdown-toggle">
-                <img style="width: 25px;" src="{{ user|gravatar:60 }}"/><b class="caret"></b>
-            </a>
-            <ul class="dropdown-menu">
-                <li><a href="{% url 'logout' %}?next={% url 'chat:all' %}">Logout</a></li>
-            </ul>
-        </li>
+        <div class="nav">
+            <div class="dropdown dropleft show p-2">
+                <div class="d-flex flex-row">
+                    <!--friend notifications-->
+                    <div class="btn-group dropleft">
+                        <div class="d-flex notifications-icon-container rounded-circle align-items-center mr-3" id="id_friend_notifications_toggle"
+                        data-toggle="dropdown">
+                            <span id="id_friend_notifications_count" class="notify-badge"></span>
+                            <span class="material-symbols-outlined" id="id_friend_requests_icon">group_add</span>
+                            <div class="dropdown-menu scrollable-menu" style="right: 0; left: auto;" aria-labelledby="id_friend_notifications_toggle" id="id_friend_notifications_dropdown"></div>
+                        </div>
+                    </div>
+                    <!--account-->
+                    <div class="btn-group dropleft">
+                        <img class="account-image rounded-circle m-auto d-block dropdown-toggle" id="id_profile_options"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" src="{% static 'chat_images/placeholder.png' %}" alt="default user image" height="30" width="30">
+                        <div class="dropdown-menu" style="right: 0; left: auto;" aria-labelledby="id_profile_options">
+                            <a class="dropdown-item" href="#">Account</a>
+                            <a class="dropdown-item" href="{% url 'logout' %}?next={% url 'home:all' %}">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         {% else %}
-        <li>
-        <a href="{% url 'login' %}?next={% url 'chat:all' %}">Login</a>
-        </li>
+        <div class="nav">
+            <div class="navbar-right">
+                <ul class="navbar-nav ml-auto">
+                    <li>
+                        <a href="{% url 'login' %}?next={% url 'home:all' %}">Login</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="nav">
+            <div class="navbar-right">
+                <a class="btn btn-outline-primary" href='#'>Register</a>
+            </div>
+        </div>
         {% endif %}
-    </ul>
-  </div>
+    </div>
 </nav>
+{% endblock %}
+{% block footer %}
+    {% include 'base/footer.html' %}
 {% endblock %}

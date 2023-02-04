@@ -4,9 +4,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 
+from publicchat.models import PublicChat, PublicMessages
 
-class MainView(View):
 
+class PublicChatView(View):
+    template_name = "publicchat/chat.html"
 
     def get(self, request):
-        return HttpResponse("Hello World")
+        return render(request, self.template_name)

@@ -17,16 +17,19 @@ import os
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.views.static import serve
 from django.views.generic import TemplateView
 
+
 urlpatterns = [
     path('', include('home.urls')),
-    path('chat/', include('chat.urls')),
     path('admin/', admin.site.urls),
+    path('publicchat/', include('publicchat.urls')),
+    path('privatechat/', include('privatechat.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
-    re_path(r'^oauth/', include('social_django.urls', namespace='social')),  # Keep
+    re_path(r'^oauth/', include('social_django.urls', namespace='social')),
 ]
 
 # Serve the static HTML
@@ -39,7 +42,7 @@ urlpatterns += [
         ),
 ]
 
-# Serve the favicon - Keep for later
+# Serve the favicon
 urlpatterns += [
     path('favicon.ico', serve, {
             'path': 'favicon.ico',
@@ -47,6 +50,10 @@ urlpatterns += [
         }
     ),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Switch to social login if it is configured - Keep for later
 try:
