@@ -1,0 +1,227 @@
+{% extends 'base_menu.html' %}
+{% block content %}
+<style type="text/css">
+
+    .image-container{
+        max-width: 300px;
+        height: auto;
+    }
+
+    .card{
+        background-color: grey;
+    }
+
+    .fa-circle{
+        position: absolute;
+        text-shadow: 0 0 3px #000;
+        top: 5%;
+        left: 68%;
+        width: 1.5em;
+    }
+
+    .fa-pencil{
+        position: absolute;
+        color: white;
+        font-size: 125%;
+        top: 5%;
+        left: 73%;
+        width: 1em;
+    }
+
+    .edit-profile span {
+      color: #666;
+      position: absolute;
+      font-family: sans-serif;
+      white-space: pre-wrap;
+      top: -3%;
+      left: 60%;
+      padding: 5px 7px;
+      z-index: -1;
+      font-size: 14px;
+      border-radius: 2px;
+      background: #fff;
+      visibility: hidden;
+      opacity:0;
+      -o-transition:all .5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      -webkit-transition: all .5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      -moz-transition: all .5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      transition: all .5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    /* pop-up text arrow */
+
+    .edit-profile span:before {
+      content:'';
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid #fff;
+      position: absolute;
+      bottom: -10%;
+      left: 45%;
+    }
+
+    /* text pops up when icon is in hover state */
+
+    .edit-profile:hover span {
+      top: -8%;
+      visibility: visible;
+      opacity: 1;
+      z-index: 10;
+    }
+
+    .friend-list-link:hover{
+        text-decoration: none;
+    }
+
+    .friend-request-link:hover{
+        text-decoration: none;
+    }
+
+    #id_interests{
+        flex-grow: 4;
+    }
+
+    .info-right{
+        align-self: stretch;
+        width: 33%;
+    }
+
+    .profile-card{
+        width: 33%;
+    }
+
+    .summary-card{
+        width: 66%;
+    }
+
+
+</style>
+<div class="container-fluid mt-5">
+    <div class="d-flex flex-row justify-content-center flex-wrap align-items-start">
+        <div class="card profile-card m-2">
+            <div class="card-body">
+                {% if is_self %}
+                    <div class="d-flex flex-row justify-content-end">
+                        <p>
+                            <a class="mb-2 edit-profile" style="justify-content: flex-end;" href="#">
+                                <span class="popuptext">Edit Profile</span>
+                                <i class="fas fa-circle fa-stack-2x" id="id_edit_profile"></i>
+                                <i class="fa fa-pencil fa-stack-1x"></i>
+                            </a>
+                        </p>
+                    </div>
+                {% endif %}
+                <div class="d-flex flex-column justify-content-center p-4">
+                    <div class="image-container mx-auto m-4">
+                        <img class="d-block border border-white rounded-circle img-fluid mx-auto profile-image"
+                        alt="Profile image" id="id_profile_image" src="{{ account.profile_image.url }}">
+                    </div>
+                    <p class="mt-2 mb-1 username-heading">
+                        <h5 style="color: #87EFF9FF;">@{{ account.username }}</h5>
+                    </p>
+                    {% if info %}
+                    <p class="mt-1 mb-1 profile-name">
+                        <h5>{{ info.name }}</h5>
+                    </p>
+                    {% endif %}
+                    {% if request.user.is_authenticated %}
+                        {% if not is_self %}
+                            {% if is_friend %}
+
+                            <!--add javascript onclick function to div-->
+                            <div class="d-flex flex-row align-items-center btn btn-primary m-2 px-2" id="id_send_private_message">
+                                <span class="material-symbols-outlined">sms</span>
+                                <span class="message-btn-text m-auto pl-2">Message</span>
+                            </div>
+                            {% else %}
+                                <!--need to implement this and pass request_sent into ctx of view-->
+                                {% if request_sent %}
+                                <button class="btn btn-danger" id="id_cancel_friend_request_btn">
+                                    Cancel friend request
+                                </button>
+                                {% else %}
+                                <button class="btn btn-primary" id="id_add_friend_btn">
+                                    Add friend
+                                </button>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% if request.user.is_authenticated %}
+        <div class="d-flex flex-column info-right">
+            <div class="card m-2 px-4 pb-4">
+                <!--friend list section-->
+                <div class="d-flex flex-column pt-2">
+                    <a class="friend-list-link" href="#">
+                        <div class="d-flex flex-row align-items-center justify-content-center icon-container">
+                            <span class="material-symbols-outlined pt-1" id=id_friend_list_icon>group</span>
+                            <span class="friend-list-text px-1 pt-1">Friends (0)</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!--friend requests-->
+            <div class="card m-2 px-4 pb-4">
+                <div class="d-flex flex-column pt-2">
+                    <a class="friend-request-link" href="#">
+                        <div class="d-flex flex-row align-items-center justify-content-center icon-container">
+                            <span class="material-symbols-outlined">person_add</span>
+                            <span class="friend-request-text px-1 pt-1">Friend requests (0)</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="card m-2 px-4" id="id_interests">
+                <div class="card-header">
+                    Interests
+                </div>
+                <div class="card-body">
+                    <p>
+                    {% if info %}
+                        {% if info.tags.all %}
+                            {% for tag in info.tags.all %}
+                            <ul>
+                                <li>
+                                    <span style="border: 1px green solid; background-color: LightGreen;">{{ tag }}</span>
+                                </li>
+                            </ul>
+                            {% endfor %}
+                        {% endif %}
+                    {% else %}
+                        <p>No current interest tags</p>
+                    {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    <div class="d-flex flex-row justify-content-center flex-wrap align-items-start">
+        <div class="card summary-card m-2">
+            <div class="card-header">
+                Summary
+            </div>
+            <div class="card-body">
+                {% if info %}
+                    {% if info.summary %}
+                    <p>
+                        {{ info.summary }}
+                    </p>
+                    {% endif %}
+                {% else %}
+                    <p>
+                        No summary at present
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

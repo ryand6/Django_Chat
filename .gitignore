@@ -2,3 +2,7 @@ __pycache__
 *.swp
 *.sqlite3
 github_settings.py
+static/
+static_cdn/
+media/
+media_cdn/

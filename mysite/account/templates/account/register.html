@@ -1,0 +1,49 @@
+{% extends 'base_menu.html' %}
+{% block content %}
+<style type="text/css">
+    .card-register{
+        max-width: 500px;
+        margin: auto;
+        margin-top: 5em;
+    }
+    .form-register input[type="email"]{
+        margin-bottom: 1em;
+    }
+    .form-register input[type="text"]{
+        margin-bottom: 1em;
+    }
+    .form-register input[type="password"]{
+        margin-bottom: 0;
+    }
+</style>
+<div class="container">
+    <div class="column justify-content-center">
+        <div class="card card-register">
+            <div class="card-body">
+                <form class="form-register" method="post">
+                    {% csrf_token %}
+                    <input type="email" name="email" id="register-email" class="form-control" placeholder="Email address" required autofocus>
+                    <input type="text" name="username" id="register-username" class="form-control" placeholder="Username" required>
+                    <input type="password" name="password1" id="register-password" class="form-control" placeholder="Password" required>
+                    <input type="password" name="password2" id="confirm-register-password" class="form-control" placeholder="Confirm password" required>
+
+                    {% for field in form %}
+                    <p>
+                        {% for error in field.errors %}
+                        <p style="color: red;">{{ error }}</p>
+                        {% endfor %}
+                    </p>
+                    {% endfor %}
+                    {% if form.non_field_errors %}
+                    <div style="color: red;">
+                        <p>{{ registration_form.non_field_errors %}</p>
+                    </div>
+                    {% endif %}
+
+                    <button class="btn btn-lg btn-primary btn-block" style="margin-top: 1em;" type="submit">Register</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
