@@ -1,0 +1,99 @@
+{% extends 'base_menu.html' %}
+{% load static %}
+{% block content %}
+
+<style type="text/css">
+
+    .card{
+        background-color: grey;
+    }
+
+    #id_account_card{
+        background-color: lightgrey;
+        width: 100%;
+    }
+
+    .profile-img{
+        max-height: 100px;
+        max-width: 100px;
+    }
+
+    .add-friend-container{
+        margin-left: auto;
+    }
+
+    #id_account_row{
+        width: 100%;
+    }
+
+    .card-right{
+        width: 100%;
+    }
+
+</style>
+
+<div class="container">
+    <div class="card mt-5 mb-5">
+        {% if accounts %}
+        <div class="d-flex flex-column">
+            {% for account in accounts %}
+            <div class="d-flex flex-row" id="id_account_row">
+                <div class="card m-1" id="id_account_card">
+                    <div class="d-flex flex-row flex-grow-1 align-items-center">
+                        <a class="account-profile-link" href="{% url 'account:profile' pk=account.0.id %}">
+                            <div class="card-image m-2">
+                                <img class="img-fluid profile-img rounded-circle" style="border: 1px solid white;" src="{{ account.0.profile_image.url }}" alt="Profile image">
+                            </div>
+                        </a>
+                        <a class="account-profile-link" href="{% url 'account:profile' pk=account.0.id %}">
+                            <div class="card-body px-2">
+                                <h5 class="account-username">
+                                    {{ account.0.username }}
+                                </h5>
+                                {% if account.1 %}
+                                <p class="message-account">
+                                    <!--add JavaScript onclick function to handle sending private message-->
+                                    <a href="#">
+                                        Message
+                                    </a>
+                                </p>
+                                {% endif %}
+                            </div>
+                        </a>
+                        {% if account.0 != request.user %}
+                        <div class="d-flex flex-row card-right flex-grow-1 justify-content-end mx-2">
+                            {% if account.1 %}
+                            <div class="d-flex flex-row friend-text-container justify-content-end p-2">
+                                <p class="friend-text m-auto">
+                                    Friend
+                                </p>
+                                <span class="material-icons checkmark-icon m-auto pl-2">
+                                    check_circle_outline
+                                </span>
+                            </div>
+                            {% else %}
+                            <div class="d-flex flex-row add-friend-container justify-content-end p-3">
+                                <!--add logic to handle whether a friend request has already been sent to user, if so replace with button to cancel request-->
+                                <!--add JavaScript onclick function to send account a friend request-->
+                                <button type="button" class="btn btn-primary m-auto">
+                                    Add friend
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="d-flex flex-row flex-grow-1 justify-content-center align-items-center">
+                <p class="pt-2">
+                    No results
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}

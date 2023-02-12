@@ -5,4 +5,6 @@ app_name='account'
 urlpatterns = [
     path('register/', views.RegisterView.as_view(), name="register"),
     path('<int:pk>/', views.ProfileView.as_view(), name="profile"),
+    path('<int:pk>/edit/', views.EditProfileView.as_view(), name="edit"),
+    path('search/', views.AccountSearch.as_view(), name="search"),
 ]

@@ -39,7 +39,7 @@ class ChatAccountManager(BaseUserManager):
 
 
 def get_profile_image_path(self, filename):
-    return f"profile_images/{str(self.pk)}/profile_image.png"
+    return f"profile_images/{self.pk}/profile_image.png"
 
 
 def get_default_image_path():
@@ -78,9 +78,9 @@ class Account(AbstractBaseUser):
 
 
 class AccountInfo(models.Model):
-    name = models.CharField(max_length=50, null=True, validators=[MinLengthValidator(2, "Name must be more than two characters.")])
-    summary = models.TextField(null=True)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50, null=True, blank=True, validators=[MinLengthValidator(2, "Name must be more than two characters.")])
+    summary = models.TextField(max_length=200, null=True, blank=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='account_info_owner')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
