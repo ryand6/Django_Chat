@@ -30,10 +30,10 @@ urlpatterns = [
     path('publicchat/', include('publicchat.urls')),
     path('privatechat/', include('privatechat.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
-    # path('accounts/reset_password/', auth_views.PasswordResetView.as_view(), name="reset_password"),
-    # path('accounts/reset_password_sent/', auth_views.PasswordResetDoneView.as_view(), name="password_reset_done"),
-    # path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
-    # path('reset_password_complete', auth_views.PasswordResetCompleteView.as_view(), name="password_reset_complete"),
+    path('accounts/reset_password/', auth_views.PasswordResetView.as_view(), name="reset_password"),
+    path('accounts/reset_password_sent/', auth_views.PasswordResetDoneView.as_view(), name="password_reset_done"),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
+    path('reset_password_complete', auth_views.PasswordResetCompleteView.as_view(), name="password_reset_complete"),
     re_path(r'^oauth/', include('social_django.urls', namespace='social')),
 ]
 

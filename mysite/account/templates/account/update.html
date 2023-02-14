@@ -34,7 +34,7 @@
                     </div>
                     <div class="d-flex image-container justify-content-center mb-4" id="id_image_container">
                         <img class="border border-white rounded-circle img-fluid mx-auto profile-image"
-                        id="id_profile_image_display" src="{{ account_form.initial.profile_image.url }}" alt="Profile image">
+                        id="id_profile_image_display" src="{{ account_profile_image }}" alt="Profile image">
                         <div class="middle" id="id_image_middle_container">
                             <div class="text" id="id_image_text">
                                 Edit
@@ -117,9 +117,15 @@
                         </p>
 
                         <div class="d-flex flex-column mt-4">
-                            <button class="btn btn-primary flex-grow1 mt-4" type="submit">
+                            <button class="btn btn-primary flex-grow1 mt-4 update-form-submit-btn" type="submit">
                                 Save
                             </button>
+                        </div>
+
+                        <div class="d-flex flex-column mt-4">
+                            <a class="btn btn-primary flex-grow1 mt-4 password-reset-btn" href="{% url 'reset_password' %}">
+                                    Reset password
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -136,8 +142,6 @@
     var cropY;
     var cropWidth;
     var cropHeight;
-    
-
 
     // call function when page is rendered
     enableImageOverlay()
@@ -161,13 +165,19 @@
                 cropper = new Cropper(imageField, {
                     aspectRatio: 1/1,
                     crop(event){
-                        setCropProperties(
-                            image,
-                            event.detail.x,
-                            event.detail.y,
-                            event.detail.width,
-                            event.detail.height
-                        )
+                        imageFile = image;
+                        cropX = event.detail.x;
+                        cropY = event.detail.y;
+                        cropWidth = event.detail.width;
+                        cropHeight = event.detail.height;
+
+                        // setCropProperties(
+                        //     image,
+                        //     event.detail.x,
+                        //     event.detail.y,
+                        //     event.detail.width,
+                        //     event.detail.height
+                        // )
                     }
                 })
             }
@@ -177,13 +187,13 @@
         }
     }
 
-    function setCropProperties(image, x, y, width, height){
-        imageFile = image;
-        cropX = x;
-        cropY = y;
-        cropWidth = width;
-        cropHeight = height;
-    }
+    // function setCropProperties(image, x, y, width, height){
+    //     imageFile = image;
+    //     cropX = x;
+    //     cropY = y;
+    //     cropWidth = width;
+    //     cropHeight = height;
+    // }
 
     function isImageSizeValid(image){
         // gets the index of the encoded image string after "base64," - plus 7 is due to length of "base64,"

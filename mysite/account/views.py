@@ -121,7 +121,6 @@ class AccountSearch(View):
 class EditProfileView(View):
     template_name = 'account/update.html'
 
-
     def get(self, request, pk):
         if not request.user.is_authenticated:
             return redirect("login")
@@ -151,7 +150,7 @@ class EditProfileView(View):
                 info_form.initial['tags'] = ""
 
             MAX_DATA_UPLOAD = settings.MAX_DATA_UPLOAD
-            ctx = {'account_form': account_form, 'info_form': info_form, 'summary': summary, 'MAX_DATA_UPLOAD': MAX_DATA_UPLOAD}
+            ctx = {'account_form': account_form, 'info_form': info_form, 'summary': summary, 'account_profile_image': account.profile_image.url, 'MAX_DATA_UPLOAD': MAX_DATA_UPLOAD}
 
             return render(request, self.template_name, ctx)
 

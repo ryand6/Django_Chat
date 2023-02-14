@@ -7,3 +7,4 @@ static_cdn/
 media/
 media_cdn/
 venv
+settings_backup.py

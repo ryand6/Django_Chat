@@ -46,7 +46,7 @@ class AccountUpdateForm(forms.ModelForm):
 
     class Meta:
         model = Account
-        fields = ('username', 'profile_image')
+        fields = ('username',)
 
     # def clean_email(self):
     #     email = self.cleaned_data['email'].lower()
@@ -64,6 +64,8 @@ class AccountUpdateForm(forms.ModelForm):
         except Account.DoesNotExist:
             return username
         else:
+            # if account exists but is current user, don't raise errors
+            # means user doesn't have to edit field if they don't want to update username
             if account.id == self.user_id:
                 return username
             else:
@@ -73,7 +75,7 @@ class AccountUpdateForm(forms.ModelForm):
         account = super(AccountUpdateForm, self).save(commit=False)
         account.username = self.cleaned_data['username']
         # account.email = self.cleaned_data['email']
-        account.profile_image = self.cleaned_data['profile_image']
+        # account.profile_image = self.cleaned_data['profile_image']
         if commit:
             account.save()
         return account

@@ -36,6 +36,7 @@ AUTH_USER_MODEL = "account.Account"
 INSTALLED_APPS = [
     'home.apps.HomeConfig',
     'account.apps.AccountConfig',
+    # 'friends.apps.FriendConfig',
     'publicchat.apps.PublicchatConfig',
     'privatechat.apps.PrivatechatConfig',
     'django.contrib.admin',
@@ -233,7 +234,7 @@ if (len(sys.argv) >= 2 and sys.argv[1] == 'runserver'):
 
 #SMTP Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = ''
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 587
