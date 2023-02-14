@@ -7,4 +7,5 @@ urlpatterns = [
     path('<int:pk>/', views.ProfileView.as_view(), name="profile"),
     path('<int:pk>/edit/', views.EditProfileView.as_view(), name="edit"),
     path('search/', views.AccountSearch.as_view(), name="search"),
+    path('<int:pk>/edit/crop_image', views.crop_image, name="crop_image")
 ]

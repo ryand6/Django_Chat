@@ -1,3 +1,9 @@
+import os
+import cv2
+import base64
+import json
+import requests
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.http import HttpResponse
@@ -7,11 +13,17 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.utils.safestring import mark_safe
+from django.core.files.storage import default_storage, FileSystemStorage
+from django.core import files
 
 from account.forms import RegistrationForm, AccountUpdateForm, AccountInfoUpdateForm
 from account.models import AccountInfo, Account
 
 from django.db.models import Q
+
+
+
+TEMP_IMAGE_NAME = "temp_profile_image.png"
 
 
 class RegisterView(View):
@@ -126,13 +138,17 @@ class EditProfileView(View):
             info_form = AccountInfoUpdateForm(instance=info)
 
             # show users previously submitted summary so they can choose not to edit
-            summary = mark_safe(info_form.initial['summary'].replace(' ', '&nbsp;'))
-            if not summary:
+            try:
+                summary = mark_safe(info_form.initial['summary'].replace(' ', '&nbsp;'))
+            except:
                 summary = "Summary"
 
             # show comma delimited list of users previously submitted interest tags
-            info_form.initial['tags'] = ', '.join([tag.name for tag in info_form.initial['tags']])
-            info_form.initial['tags'] = mark_safe(info_form.initial['tags'].replace(' ', '&nbsp;'))
+            try:
+                info_form.initial['tags'] = ', '.join([tag.name for tag in info_form.initial['tags']])
+                info_form.initial['tags'] = mark_safe(info_form.initial['tags'].replace(' ', '&nbsp;'))
+            except:
+                info_form.initial['tags'] = ""
 
             MAX_DATA_UPLOAD = settings.MAX_DATA_UPLOAD
             ctx = {'account_form': account_form, 'info_form': info_form, 'summary': summary, 'MAX_DATA_UPLOAD': MAX_DATA_UPLOAD}
@@ -141,7 +157,7 @@ class EditProfileView(View):
 
 
 
-    def post(self, request, pk=None):
+    def post(self, request, pk):
         account_form = AccountUpdateForm(request.POST, request.FILES, instance=request.user, id=request.user.id)
 
         if not account_form.is_valid():
@@ -164,10 +180,81 @@ class EditProfileView(View):
         info.save()
         info_form.save_m2m()
 
-        account.profile_image.delete()
         account_form.save()
 
         success_url = reverse("account:profile", args={request.user.pk,})
 
         return redirect(success_url)
 
+
+def save_temp_image(image_b64, user):
+    try:
+        if not os.path.exists(settings.TEMP):
+            os.mkdir(settings.TEMP)
+        # account for different os filepaths - '/' or '\'
+        path = os.path.join(settings.TEMP, str(user.pk))
+        if not os.path.exists(path):
+            os.mkdir(path)
+        # filepath for saving temp image
+        url = os.path.join(path, TEMP_IMAGE_NAME)
+        storage = FileSystemStorage(location=url)
+        # https://stackoverflow.com/questions/2941995/python-ignore-incorrect-padding-error-when-base64-decoding
+        # add maximum number of padding required to base64 string before decoding to prevent any incorrect padding
+        # errors occurring if the base64 string is corrupted - if padding already exists, Python will safely discard
+        # additional padding as validate defaults to False, preventing binascii.Error
+        image = base64.b64decode(image_b64 + '==')
+        with storage.open('', 'wb+') as destination:
+            destination.write(image)
+        return url
+    except Exception as e:
+        raise e
+    return None
+
+
+def crop_image(request, *args, **kwargs):
+    payload = {}
+    user = request.user
+    if request.POST and user.is_authenticated:
+        try:
+            image_b64 = request.POST.get("image")
+            url = save_temp_image(image_b64, user)
+            # load image from filepath
+            image = cv2.imread(url)
+            
+            # get x and y coords of bottom left corner of crop square
+            x_coord = int(float(str(request.POST.get('x_coord'))))
+            y_coord = int(float(str(request.POST.get('y_coord'))))
+
+            # get width and height of crop square
+            crop_width = int(float(str(request.POST.get('crop_width'))))
+            crop_height = int(float(str(request.POST.get('crop_height'))))
+
+            # if either x or y coords are near to edge of pic, sometimes might get passed as -1 
+            # change to 0 to prevent errors
+            if x_coord < 0:
+                x_coord = 0
+            if y_coord < 0:
+                y_coord = 0
+            
+            crop_image = image[y_coord:y_coord + crop_height, x_coord:x_coord + crop_width]
+
+            cv2.imwrite(url, crop_image)
+
+            # delete previously stored image for user
+            if user.profile_image:
+                user.profile_image.delete()
+
+            user.profile_image.save("profile_image.png", files.File(open(url, "rb")))
+            user.save()
+
+            payload['result'] = "success"
+            payload['cropped_image'] = user.profile_image.url
+
+            # remove temp file
+            os.remove(url)
+
+        except Exception as e:
+            payload['result'] = "error"
+            payload['exception'] = str(e)
+
+    return HttpResponse(json.dumps(payload), content_type="application/json")

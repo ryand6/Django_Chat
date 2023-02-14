@@ -130,6 +130,15 @@
 
 <script type="text/javascript">
 
+    var cropper;
+    var imageFile;
+    var cropX;
+    var cropY;
+    var cropWidth;
+    var cropHeight;
+    
+
+
     // call function when page is rendered
     enableImageOverlay()
 
@@ -147,10 +156,91 @@
                 var image = event.target.result;
                 var imageField = document.getElementById("id_profile_image_display");
                 imageField.src = image;
+                // 1/1 aspect ratio ensures picture is always a square - means that when rounded-circle css
+                // is applied to the image, it is formatted as a circle and not stretched
+                cropper = new Cropper(imageField, {
+                    aspectRatio: 1/1,
+                    crop(event){
+                        setCropProperties(
+                            image,
+                            event.detail.x,
+                            event.detail.y,
+                            event.detail.width,
+                            event.detail.height
+                        )
+                    }
+                })
             }
 
             // reads the contents of the file as base64-encoded string, which is then used as the images src
             reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function setCropProperties(image, x, y, width, height){
+        imageFile = image;
+        cropX = x;
+        cropY = y;
+        cropWidth = width;
+        cropHeight = height;
+    }
+
+    function isImageSizeValid(image){
+        // gets the index of the encoded image string after "base64," - plus 7 is due to length of "base64,"
+        var indexStart = image.indexOf("base64,") + 7;
+        var base64str = image.substr(indexStart);
+        // function decodes base64 strings
+        var decoded = atob(base64str);
+        if(decoded.length >= "{{ MAX_DATA_UPLOAD }}"){
+            return null;
+        }
+        return base64str;
+    }
+
+    function cropImage(image, x, y, width, height){
+        base64str = isImageSizeValid(image);
+        if(base64str != null){
+            var requestData = {
+                "csrfmiddlewaretoken": "{{ csrf_token }}",
+                "image": base64str,
+                "x_coord": cropX,
+                "y_coord": cropY,
+                "crop_width": cropWidth,
+                "crop_height": cropHeight
+            }
+
+            // show loading spinner whilst image is being cropped
+            displayLoadingSpinner(true);
+            // send request via AJAX so that page isn't refreshed when POST request is made
+            $.ajax({
+                type: 'POST',
+                dataType: "json",
+                url: "{% url 'account:crop_image' user.id %}",
+                data: requestData,
+                timeout: 10000,
+                success: function(data){
+                    if(data.result == "success"){
+                        // cropped image will have been saved at this point so refreshing page
+                        // now shows the cropped image
+                        window.location.reload();
+                    }
+                    else if(data.result == "error"){
+                        // show user the exception if fails
+                        alert(data.exception);
+                    }
+                },
+                error: function(data){
+                    console.log("Error: ", data);
+                },
+                // stop showing loading spinner when crop is comnpleted
+                complete: function(data){
+                    displayLoadingSpinner(false);
+                }
+            })
+        }
+        else{
+            alert("Image size must be less than 10MB")
+            document.getElementById("id_cancel").click();
         }
     }
 
@@ -251,8 +341,7 @@
 
         var confirm = document.getElementById("id_confirm");
         confirm.addEventListener("click", function(event){
-            // TODO - submit cropped image to the backend
-            enableImageOverlay()
+            cropImage(imageFile, cropX, cropY, cropWidth, cropHeight);
         })
 
         var cancel = document.getElementById("id_cancel");
