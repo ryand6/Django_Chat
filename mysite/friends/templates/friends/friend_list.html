@@ -1,0 +1,80 @@
+{% extends 'base_menu.html' %}
+{% load static %}
+{% block content %}
+
+<style type="text/css">
+
+    .card{
+        background-color: grey;
+    }
+
+    #id_account_card{
+        background-color: lightgrey;
+        width: 100%;
+    }
+
+    .profile-img{
+        max-height: 100px;
+        max-width: 100px;
+    }
+
+    .send-friend-message-container{
+        margin-left: auto;
+    }
+
+    #id_account_row{
+        width: 100%;
+    }
+
+    .card-right{
+        width: 100%;
+    }
+
+</style>
+
+<div class="container">
+    <div class="card mt-5 mb-5">
+        {% if friend_list %}
+        <div class="d-flex flex-column">
+            {% for friend in friend_list %}
+            <div class="d-flex flex-row" id="id_account_row">
+                <div class="card m-1" id="id_account_card">
+                    <div class="d-flex flex-row flex-grow-1 align-items-center">
+                        <a class="account-profile-link" href="{% url 'account:profile' pk=friend.id %}">
+                            <div class="card-image m-2">
+                                <img class="img-fluid profile-img rounded-circle" style="border: 1px solid white;" src="{{ friend.profile_image.url }}" alt="Profile image">
+                            </div>
+                        </a>
+                        <a class="account-profile-link" href="{% url 'account:profile' pk=friend.id %}">
+                            <div class="card-body px-2">
+                                <h5 class="account-username">
+                                    {{ friend.username }}
+                                </h5>
+                            </div>
+                        </a>
+                        {% if user == account %}
+                        <div class="d-flex flex-row card-right flex-grow-1 justify-content-end mx-2">
+                            <div class="d-flex flex-row send-friend-message-container justify-content-end p-3">
+                                <div class="d-flex flex-row align-items-center btn btn-primary m-2 px-2" id="id_send_private_message">
+                                    <span class="material-symbols-outlined">sms</span>
+                                    <span class="message-btn-text m-auto pl-2">Message</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="d-flex flex-row flex-grow-1 justify-content-center align-items-center">
+                <p class="pt-2">
+                    No results
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock content %}

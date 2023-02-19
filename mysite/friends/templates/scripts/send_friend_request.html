@@ -1,0 +1,40 @@
+<script type="text/javascript">
+
+    var token = "{{ csrf_token }}";
+
+    function sendFriendRequest(element){
+        // access url through element attribute so that you're not using django template variables inside 
+        // javascript - protect against Cross-Site Scripting (XSS)
+        const myUrl = element.getAttribute('data-request-url');
+        const id = element.getAttribute('data-account-id');
+        console.log(myUrl);
+        console.log(id);
+
+        requestData = {
+            "csrfmiddlewaretoken": token,
+            "receiver_user_id": id,
+        }
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: myUrl,
+            timeout: 5000,
+            data: requestData,
+            success: function(data){
+                if(data['response'] == "success"){
+                    // update account UI
+                }
+                else if(data['response'] != null){
+                    alert(data['response']);
+                }
+            },
+            error: function(data){
+                alert("Something went wrong: " + data);
+            },
+            complete: function(data){
+                window.location.reload();
+            },
+        })
+    }
+
+</script>

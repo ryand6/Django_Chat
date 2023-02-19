@@ -228,6 +228,8 @@
                 url: "{% url 'account:crop_image' user.id %}",
                 data: requestData,
                 timeout: 10000,
+                // data in function parameter referes to the data sent back by the server
+                // in this case would be the payload data sent back by HttpResponse in the crop image function in views.py
                 success: function(data){
                     if(data.result == "success"){
                         // cropped image will have been saved at this point so refreshing page

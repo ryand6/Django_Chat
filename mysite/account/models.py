@@ -80,7 +80,7 @@ class Account(AbstractBaseUser):
 class AccountInfo(models.Model):
     name = models.CharField(max_length=50, null=True, blank=True, validators=[MinLengthValidator(2, "Name must be more than two characters.")])
     summary = models.TextField(max_length=200, null=True, blank=True)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='account_info_owner')
+    owner = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='info')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

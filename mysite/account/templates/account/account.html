@@ -134,22 +134,32 @@
                     {% if request.user.is_authenticated %}
                         {% if not is_self %}
                             {% if is_friend %}
-
                             <!--add javascript onclick function to div-->
                             <div class="d-flex flex-row align-items-center btn btn-primary m-2 px-2" id="id_send_private_message">
                                 <span class="material-symbols-outlined">sms</span>
                                 <span class="message-btn-text m-auto pl-2">Message</span>
                             </div>
                             {% else %}
-                                <!--need to implement this and pass request_sent into ctx of view-->
-                                {% if request_sent %}
-                                <button class="btn btn-danger" id="id_cancel_friend_request_btn">
+                                {% if received_friend_request %}
+                                <div class="d-flex flex-row align-items-center">
+                                    <span class="received-friend-request-text align-items-center mr-2 mb-1">{{ account.username }} has sent you a friend request</span>
+                                </div>
+                                <div class="d-flex flex-row align-items-center">
+                                    <a class="btn btn-primary confirm-friend-request mr-1" id="id_confirm_friend_request" data-request-url="{% url 'friends:accept_friend_request'  %}" 
+                                    data-friend-request-id="{{ received_friend_request_id }}" onclick='acceptFriendRequest(this)'>Confirm</a>
+                                    <a class="btn btn-secondary decline-friend-request ml-1" id="id_decline_friend_request" data-request-url="{% url 'friends:decline_friend_request'  %}" 
+                                    data-friend-request-id="{{ received_friend_request_id }}" onclick='declineFriendRequest(this)'>Decline</a>
+                                </div>
+                                {% elif sent_friend_request %}
+                                <a class="btn btn-danger" id="id_cancel_friend_request_btn" data-request-url="{% url 'friends:cancel_friend_request' %}"
+                                data-account-id="{{ account.id }}" onclick='cancelFriendRequest(this);'>
                                     Cancel friend request
-                                </button>
+                                </a>
                                 {% else %}
-                                <button class="btn btn-primary" id="id_add_friend_btn">
+                                <a class="btn btn-primary" id="id_add_friend_btn" data-request-url="{% url 'friends:friend_request' %}" 
+                                data-account-id="{{ account.id }}" onclick='sendFriendRequest(this);'>
                                     Add friend
-                                </button>
+                                </a>
                                 {% endif %}
                             {% endif %}
                         {% endif %}
@@ -162,26 +172,28 @@
             <div class="card m-2 px-4 pb-4">
                 <!--friend list section-->
                 <div class="d-flex flex-column pt-2">
-                    <a class="friend-list-link" href="#">
+                    <a class="friend-list-link" href="{% url 'friends:friend_list' account.id %}">
                         <div class="d-flex flex-row align-items-center justify-content-center icon-container">
                             <span class="material-symbols-outlined pt-1" id=id_friend_list_icon>group</span>
-                            <span class="friend-list-text px-1 pt-1">Friends (0)</span>
+                            <span class="friend-list-text px-1 pt-1">Friends ({{ friends|length }})</span>
                         </div>
                     </a>
                 </div>
             </div>
 
             <!--friend requests-->
+            {% if active_friend_requests %}
             <div class="card m-2 px-4 pb-4">
                 <div class="d-flex flex-column pt-2">
-                    <a class="friend-request-link" href="#">
+                    <a class="friend-request-link" href="{% url 'friends:friend_requests' account.id %}">
                         <div class="d-flex flex-row align-items-center justify-content-center icon-container">
                             <span class="material-symbols-outlined">person_add</span>
-                            <span class="friend-request-text px-1 pt-1">Friend requests (0)</span>
+                            <span class="friend-request-text px-1 pt-1">Friend requests ({{ active_friend_requests|length }})</span>
                         </div>
                     </a>
                 </div>
             </div>
+            {% endif %}
 
             <div class="card m-2 px-4" id="id_interests">
                 <div class="card-header">
@@ -194,11 +206,6 @@
                             <div class="d-flex flex-row justify-content-center" style="flex-wrap: wrap;">
                             {% for tag in info.tags.all %}
                                 <span class="p-1 m-1" style="border: 1px green solid; background-color: LightGreen;">{{ tag }}</span>
-                            <!--<ul style="list-style-type: none;">-->
-                            <!--    <li>-->
-                            <!--        <span style="border: 1px green solid; background-color: LightGreen;">{{ tag }}</span>-->
-                            <!--    </li>-->
-                            <!--</ul>-->
                             {% endfor %}
                             </div>
                         {% endif %}
@@ -231,5 +238,21 @@
             </div>
         </div>
     </div>
+    {% if is_friend %}
+    <div class="d-flex flex-row justify-content-center">
+        <a class="btn btn-secondary remove-friend-button" data-request-url="{% url 'friends:remove_friend' %}"
+        data-account-id="{{ account.id }}" onclick='removeFriend(this);'>
+            Remove friend
+        </a>
+    </div>
+    {% endif %}
 </div>
+
+
+{% include 'scripts/send_friend_request.html' %}
+{% include 'scripts/cancel_friend_request.html' %}
+{% include 'scripts/decline_friend_request.html' %}
+{% include 'scripts/accept_friend_request.html' %}
+{% include 'scripts/remove_friend.html' %}
+
 {% endblock content %}

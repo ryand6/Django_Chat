@@ -1,0 +1,81 @@
+{% extends 'base_menu.html' %}
+{% load static %}
+{% block content %}
+
+<style type="text/css">
+
+    .card{
+        background-color: grey;
+    }
+
+    #id_account_card{
+        background-color: lightgrey;
+        width: 100%;
+    }
+
+    .profile-img{
+        max-height: 100px;
+        max-width: 100px;
+    }
+
+    .confirm-or-decline-request-container{
+        margin-left: auto;
+    }
+
+    #id_account_row{
+        width: 100%;
+    }
+
+    .card-right{
+        width: 100%;
+    }
+
+</style>
+
+<div class="container">
+    <div class="card mt-5 mb-5">
+        {% if friend_requests %}
+        <div class="d-flex flex-column">
+            {% for friend_request in friend_requests %}
+            <div class="d-flex flex-row" id="id_account_row">
+                <div class="card m-1" id="id_account_card">
+                    <div class="d-flex flex-row flex-grow-1 align-items-center">
+                        <a class="account-profile-link" href="{% url 'account:profile' pk=friend_request.sender.id %}">
+                            <div class="card-image m-2">
+                                <img class="img-fluid profile-img rounded-circle" style="border: 1px solid white;" src="{{ friend_request.sender.profile_image.url }}" alt="Profile image">
+                            </div>
+                        </a>
+                        <a class="account-profile-link" href="{% url 'account:profile' pk=friend_request.sender.id %}">
+                            <div class="card-body px-2">
+                                <h5 class="account-username">
+                                    {{ friend_request.sender.username }}
+                                </h5>
+                            </div>
+                        </a>
+                        <div class="d-flex flex-row card-right flex-grow-1 justify-content-end mx-2">
+                            <div class="d-flex flex-row confirm-or-decline-request-container justify-content-end p-3">
+                                <a class="btn btn-primary confirm-friend-request mr-1" id="id_confirm_friend_request" data-request-url="{% url 'friends:accept_friend_request' %}" 
+                                data-friend-request-id="{{ friend_request.id }}" onclick='acceptFriendRequest(this)'>Confirm</a>
+                                <a class="btn btn-secondary decline-friend-request ml-1" id="id_decline_friend_request" data-request-url="{% url 'friends:decline_friend_request' %}" 
+                                data-friend-request-id="{{ friend_request.id }}" onclick='declineFriendRequest(this)'>Decline</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="d-flex flex-row flex-grow-1 justify-content-center align-items-center">
+                <p class="pt-2">
+                    No results
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% include 'scripts/accept_friend_request.html' %}
+{% include 'scripts/decline_friend_request.html' %}
+
+{% endblock content %}

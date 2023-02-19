@@ -9,7 +9,6 @@ from django.views import View
 from django.http import HttpResponse
 from django.contrib.auth import login, authenticate
 from django.urls import reverse
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.utils.safestring import mark_safe
@@ -18,9 +17,10 @@ from django.core import files
 
 from account.forms import RegistrationForm, AccountUpdateForm, AccountInfoUpdateForm
 from account.models import AccountInfo, Account
+from friends.models import FriendList, FriendRequest
+from friends.views import is_friend_request_active
 
 from django.db.models import Q
-
 
 
 TEMP_IMAGE_NAME = "temp_profile_image.png"
@@ -61,17 +61,53 @@ class ProfileView(View):
         except:
             pass
 
-        user = request.user
+        # if friend list doesn't exist for user, create empty one 
+        try:
+            friend_list = FriendList.objects.get(owner=account)
+        except FriendList.DoesNotExist:
+            friend_list = FriendList(owner=account)
+            friend_list.save()
+        
+        friends = friend_list.friends.all()
 
+        user = request.user
         is_self = True
         is_friend = False
+        received_friend_request = False
+        sent_friend_request = False
+        received_friend_request_id = None
+        active_friend_requests = None
+
+        ctx = {'info': info, 'account': account, 'friends': friends}
 
         if user.is_authenticated and user != account:
             is_self = False
+            if friends.filter(pk=user.id):
+                is_friend = True
+            else:
+                is_friend = False
+                # check if account sent you a friend request
+                if is_friend_request_active(sender=account, receiver=user):
+                    received_friend_request = True
+                    # get pk of friend request object so that friend request object can be altered by javascript in the template i.e. made inactive
+                    received_friend_request_id = is_friend_request_active(sender=account, receiver=user).id
+                # check is user sent account friend request
+                elif is_friend_request_active(sender=user, receiver=account):
+                    sent_friend_request = True
         elif not user.is_authenticated:
             is_self = False
-
-        ctx = {'info': info, 'account': account, 'is_self': is_self, 'is_friend': is_friend}
+        else:
+            try:
+                active_friend_requests = FriendRequest.objects.filter(receiver=user, is_active_request=True) 
+            except:
+                pass
+        
+        ctx['is_self'] = is_self
+        ctx['is_friend'] = is_friend
+        ctx['received_friend_request'] = received_friend_request
+        ctx['sent_friend_request'] = sent_friend_request
+        ctx['received_friend_request_id'] = received_friend_request_id
+        ctx['active_friend_requests'] = active_friend_requests
 
         return render(request, self.template_name, ctx)
 
@@ -140,7 +176,7 @@ class EditProfileView(View):
             try:
                 summary = mark_safe(info_form.initial['summary'].replace(' ', '&nbsp;'))
             except:
-                summary = "Summary"
+                summary = ""
 
             # show comma delimited list of users previously submitted interest tags
             try:
@@ -153,7 +189,6 @@ class EditProfileView(View):
             ctx = {'account_form': account_form, 'info_form': info_form, 'summary': summary, 'account_profile_image': account.profile_image.url, 'MAX_DATA_UPLOAD': MAX_DATA_UPLOAD}
 
             return render(request, self.template_name, ctx)
-
 
 
     def post(self, request, pk):
