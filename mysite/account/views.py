@@ -116,7 +116,9 @@ class AccountSearch(View):
     template_name = "account/search.html"
 
     def get(self, request):
+        user = request.user
         search_query = request.GET.get("search", False)
+
         if search_query:
             info_check = AccountInfo.objects.all()
             if not info_check:
@@ -144,9 +146,18 @@ class AccountSearch(View):
                             final_results.append(account_res)
                 results = final_results
 
+            friend_list = FriendList.objects.get(owner=user)
+            
             accounts = []
             for account in results:
-                accounts.append((account, False))
+                # check if account is a friend of user
+                if account in friend_list.friends.all():
+                    accounts.append((account, "1"))
+                # check if friend request has already been sent to account
+                elif FriendRequest.objects.filter(sender=request.user, receiver=account, is_active_request=True):
+                    accounts.append((account, "0"))
+                else:
+                    accounts.append((account, "-1"))
         else:
             accounts = []
 

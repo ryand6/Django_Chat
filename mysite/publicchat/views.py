@@ -11,4 +11,15 @@ class PublicChatView(View):
     template_name = "publicchat/chat.html"
 
     def get(self, request):
-        return render(request, self.template_name)
+        username = request.user.username
+        try:
+            chatroom = PublicChat.objects.all().first()
+            recent_messages = PublicMessages.objects.filter(room=chatroom).order_by('-created_at')[:40]
+            recent_messages = recent_messages[::-1]
+        except:
+            print('error - no chat messages found')
+            recent_messages = None
+
+        ctx = {'username': username, 'recent_messages': recent_messages} 
+
+        return render(request, self.template_name, ctx)

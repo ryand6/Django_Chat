@@ -34,6 +34,7 @@ AUTH_USER_MODEL = "account.Account"
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'home.apps.HomeConfig',
     'account.apps.AccountConfig',
     'friends.apps.FriendsConfig',
@@ -95,6 +96,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
+ASGI_APPLICATION = 'mysite.asgi.application'
+
 
 DB_NAME = ""
 DB_USER = ""
@@ -113,12 +116,18 @@ DATABASES = {
 
 # CHANNEL_LAYERS = {
 #     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             "hosts": [('127.0.0.1', 6379)],
-#             },
+#         'BACKEND': 'channels.layers.InMemoryChannelLayer',
 #         },
 #     }
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 
 # Password validation

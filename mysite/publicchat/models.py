@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.conf import settings
 
@@ -9,6 +10,12 @@ class PublicChat(models.Model):
 
     def __str__(self):
         return self.title
+    
+    def save(self, *args, **kwargs):
+        # make sure there can only be one instance of the public chatroom model
+        if not PublicChat.objects.filter(pk=self.pk).exists() and PublicChat.objects.exists():
+            raise ValidationError('There can only be one instance of this model') 
+        return super(PublicChat, self).save(*args, **kwargs)
 
     def connect_user(self, user):
         # checks if current user is stored in list of active users and adds them if not
@@ -21,10 +28,6 @@ class PublicChat(models.Model):
         if user in self.users.all():
             self.users.remove(user)
             self.save()
-
-    @property
-    def group_name(self):
-        return f"PublicChat-#{self.id}"
 
 
 class PublicChatMessagesManager(models.Manager):

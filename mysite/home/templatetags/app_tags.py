@@ -19,3 +19,17 @@ def gravatar(user, size=35):
     email_hash = md5(email).hexdigest()
     url = "//www.gravatar.com/avatar/{0}?s={1}&d=identicon&r=PG"
     return url.format(email_hash, size)
+
+
+# https://stackoverflow.com/questions/32795907/how-to-access-the-next-and-the-previous-elements-in-a-django-template-forloop
+@register.filter
+def previous(some_list, current_index):
+    """
+    Returns the previous element of the list using the current index if it exists.
+    Otherwise returns an empty string.
+    """
+    try:
+        return some_list[int(current_index) - 1] # access the previous element
+    except Exception as e:
+        print(e)
+        return '' # return empty string in case of exception

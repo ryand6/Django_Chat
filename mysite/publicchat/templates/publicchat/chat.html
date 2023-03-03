@@ -1,4 +1,280 @@
 {% extends "base_menu.html" %}
+{% load app_tags %}
 {% block content %}
-    <p>Hello World</p>
+
+<style type="text/css">
+
+    body{
+        overflow-y: hidden;
+    } 
+
+    #id_chat_log_container{
+        height: calc(100vh - 180px);
+        flex: 1;
+        background-color: grey;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .chat-window{
+        height: 100%;
+        width: 100%;
+    }
+
+    #chat_log{
+        overflow-x: hidden;
+        overflow-y: visible;
+        align-self: flex-start;
+        flex: 1;
+        max-width: 90%;
+    }
+
+    #id_message_bar{
+        height: 50px;
+        width: 100%;
+        -ms-flex-align: stretch;
+        background-color: darkgray;
+    }
+
+    .chatroom-message-user-pic{
+        border: 1px;
+        border-color: white;
+        display: block;
+        border-radius: 50%;
+        height: 50px;
+        width: 50px;
+        background-color: white;
+    }
+
+    .chatroom-message-container{
+        display: flex;
+        flex-direction: row;
+    }
+
+    .chatroom-picture-container{
+        display: flex;
+        flex-direction: column;
+        justify-self: start;
+        max-height: 75px;
+        min-width: 75px;
+    }
+
+    .chatroom-message-body-container{
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .chatroom-message-headers-container{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .chatroom-message-text-container{
+        max-width: 75%;
+        display: flex;
+        flex-direction: row;
+        flex-grow: 1;
+    }
+
+    .chatroom-message-author-other-user{
+        display: flex;
+        font-size: 18pt;
+    }
+
+    .chatroom-message-author-current-user{
+        display: flex;
+        font-size: 16pt;
+        color: orange;
+    }
+
+    .chatroom-message-body{
+        margin-top: 0.5em;
+        max-width: 100%;
+        word-wrap: break-word;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #E7F6F2; 
+    }
+
+    .chatroom-message-timestamp{
+        display: flex;
+        margin-left: auto;
+        margin-right: 1em;
+    }
+
+</style>
+
+<div class="container d-flex flex-row mt-4" id="id_chat_log_container">
+    <div class="d-flex flex-column justify-content-center chat-window">
+        <div class="d-flex flex-column m-4" id="chat_log">
+            {% for message in recent_messages %}
+            {% with prev_message=recent_messages|previous:forloop.counter0 %}
+                {% if message.created_at|date:"F d" != prev_message.created_at|date:"F d" %}
+                <div class="date-separator my-4">
+                    <span class="date-separator-dashes"></span>
+                    <span id="chat_new_date">{{ message.created_at|date:"F d" }}</span>
+                    <span class="date-separator-dashes"></span>
+                </div>
+                {% else %}
+                    {% if prev_message.user != message.user %}
+                    <p></p><p></p>
+                    {% endif %}
+                {% endif %}
+            {% endwith %}
+            <div class="chatroom-message-container">
+                <div class="chatroom-picture-container">
+                    {% ifchanged message.user %}
+                    <img class="chatroom-message-user-pic" src="{{ message.user.profile_image.url }}" alt="{{ message.user.username }}'s profile image">
+                    {% endifchanged %}
+                </div>
+                <div class="chatroom-message-body-container">
+                    <div class="chatroom-message-headers-container">
+                        {% ifchanged message.user %}
+                            {% if request.user == message.user %}
+                            <span class="chatroom-message-author-current-user">
+                                {{ message.user.username }}
+                            </span>
+                            {% else %}
+                            <span class="chatroom-message-author-other-user">
+                                {{ message.user.username }}
+                            </span>
+                            {% endif %}
+                            <span class="chatroom-message-timestamp">
+                                {{ message.created_at }}
+                            </span>
+                        {% endifchanged %}
+                    </div>
+                    <div class="chatroom-message-text-container">
+                        <span class="chatroom-message-body">
+                            {{ message.message }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="d-flex flex-row p-2" id="id_message_bar">
+            <input class="mx-2" id="chat_message_input" type="text" size="100">
+            <input id="chat_message_submit" type="button" value="Send">
+        </div>
+    </div>
+</div>
+
+{{ username|json_script:"username" }}
+
+<script type="text/javascript">
+
+    const userSentLastMessage = false;
+
+    window.addEventListener('load', addDashes);
+    window.addEventListener('resize', addDashes);
+
+    // calculates number of dashes to separate messages by dates when page is loaded or resized
+    function addDashes() {
+        var chatContainer = document.getElementById('chat_log');
+        var containerWidth = chatContainer.getBoundingClientRect().width;
+        var messageDateContainer = document.getElementById('chat_new_date');
+        var dateContainerWidth = messageDateContainer.getBoundingClientRect().width;
+        console.log(containerWidth)
+        console.log(dateContainerWidth)
+        // &ndash; char has a width of 8 - divide by two as they need to go either side of the date text
+        var numDashes = Math.floor((containerWidth - dateContainerWidth - 20) / 8 / 2);
+        console.log(numDashes)
+        var spanTags = document.getElementsByClassName('date-separator-dashes');
+        for (var i=0; i < spanTags.length; i++) {
+            spanTags[i].innerHTML = '&ndash;'.repeat(numDashes);
+        }
+    }
+
+
+    const chatSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/public_chat/'
+    );
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        console.log(data);
+
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chatroom-message-container');
+
+        const pictureElement = document.createElement('div');
+        pictureElement.classList.add('chatroom-picture-container');
+
+        if (data.profile_pic) {
+            const imageElement = document.createElement('img');
+            imageElement.src = data.profile_pic;
+            imageElement.alt = data.username + '\'s profile image';
+            imageElement.classList.add('chatroom-message-user-pic')
+            pictureElement.appendChild(imageElement);
+        }
+
+        messageElement.appendChild(pictureElement);
+
+        const messageBodyElement = document.createElement('div');
+        messageBodyElement.classList.add('chatroom-message-body-container');
+
+        const messageHeaderElement = document.createElement('div');
+        messageHeaderElement.classList.add('chatroom-message-headers-container');
+
+        const messageTextElement = document.createElement('div');
+        messageTextElement.classList.add('chatroom-message-text-container');
+
+        messageBodyElement.appendChild(messageHeaderElement);
+        messageBodyElement.appendChild(messageTextElement);
+        messageElement.appendChild(messageBodyElement);
+
+        if (data.username) {
+            const requestUsername = JSON.parse(document.getElementById('username').textContent);
+            // if message is from current user, make their username in the message orange
+            if (data.username == requestUsername) {
+                const authorElement = document.createElement('span');
+                authorElement.classList.add('chatroom-message-author-current-user');
+                authorElement.textContent = data.username;
+                messageHeaderElement.appendChild(authorElement);
+                // authorElement.style.color = "orange";
+            }
+            else {
+                const authorElement = document.createElement('span');
+                authorElement.classList.add('chatroom-message-author-other-user');
+                authorElement.textContent = data.username;
+                messageHeaderElement.appendChild(authorElement);
+            }
+        }
+
+        const bodyElement = document.createElement('span');
+        bodyElement.classList.add('chatroom-message-body');
+        bodyElement.textContent = data.message;
+        messageTextElement.appendChild(bodyElement);
+
+        const messagesElement = document.querySelector('#chat_log');
+        messagesElement.appendChild(messageElement);
+    }
+
+    chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+    document.querySelector('#chat_message_input').focus();
+
+    // if user presses enter, send message
+    document.querySelector('#chat_message_input').onkeyup = function(e) {
+        if (e.keyCode === 13) {  // enter, return
+            document.querySelector('#chat_message_submit').click();
+        }
+    };
+
+    document.querySelector('#chat_message_submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat_message_input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = '';
+        };
+
+</script>
+
 {% endblock %}

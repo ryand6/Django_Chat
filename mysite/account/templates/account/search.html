@@ -46,38 +46,44 @@
                             </div>
                         </a>
                         <a class="account-profile-link" href="{% url 'account:profile' pk=account.0.id %}">
-                            <div class="card-body px-2">
+                            <div class="card-body px-2 mr-5">
                                 <h5 class="account-username">
                                     {{ account.0.username }}
                                 </h5>
-                                {% if account.1 %}
-                                <p class="message-account">
-                                    <!--add JavaScript onclick function to handle sending private message-->
-                                    <a href="#">
-                                        Message
-                                    </a>
-                                </p>
-                                {% endif %}
                             </div>
                         </a>
+                        {% if account.0.info.tags.all %}
+                        <div class="d-flex flex-row justify-content-center align-items-center mx-5">
+                            {% for tag in account.0.info.tags.all %}
+                                <span class="p-1 m-1" style="border: 1px green solid; background-color: LightGreen;">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                         {% if account.0 != request.user %}
                         <div class="d-flex flex-row card-right flex-grow-1 justify-content-end mx-2">
-                            {% if account.1 %}
+                            {% if account.1 == "1" %}
                             <div class="d-flex flex-row friend-text-container justify-content-end p-2">
-                                <p class="friend-text m-auto">
-                                    Friend
+                                <p class="message-account">
+                                    <!--add JavaScript onclick function to handle sending private message-->
+                                    <a class="btn btn-primary mr-2" href="#">
+                                        <span class="material-symbols-outlined">sms</span>
+                                        <span class="message-btn-text m-auto pl-2">Message</span>
+                                    </a>
                                 </p>
-                                <span class="material-icons checkmark-icon m-auto pl-2">
-                                    check_circle_outline
-                                </span>
                             </div>
-                            {% else %}
+                            {% elif account.1 == "0" %}
                             <div class="d-flex flex-row add-friend-container justify-content-end p-3">
-                                <!--add logic to handle whether a friend request has already been sent to user, if so replace with button to cancel request-->
-                                <!--add JavaScript onclick function to send account a friend request-->
-                                <button type="button" class="btn btn-primary m-auto">
+                                <a class="btn btn-danger" id="id_cancel_friend_request_btn" data-request-url="{% url 'friends:cancel_friend_request' %}"
+                                data-account-id="{{ account.0.id }}" onclick='cancelFriendRequest(this);'>
+                                    Cancel friend request
+                                </a>
+                            </div>
+                            {% elif account.1 == "-1" %}
+                            <div class="d-flex flex-row add-friend-container justify-content-end p-3">
+                                <a class="btn btn-primary" id="id_add_friend_btn" data-request-url="{% url 'friends:friend_request' %}" 
+                                data-account-id="{{ account.0.id }}" onclick='sendFriendRequest(this);'>
                                     Add friend
-                                </button>
+                                </a>
                             </div>
                             {% endif %}
                         </div>
@@ -96,4 +102,8 @@
         {% endif %}
     </div>
 </div>
+
+{% include 'scripts/send_friend_request.html' %}
+{% include 'scripts/cancel_friend_request.html' %}
+
 {% endblock content %}
