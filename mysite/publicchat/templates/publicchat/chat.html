@@ -26,7 +26,10 @@
         overflow-y: visible;
         align-self: flex-start;
         flex: 1;
-        max-width: 90%;
+        width: 100%;
+        padding-left: 4em;
+        padding-right: 4em;
+        padding-bottom: 4em;
     }
 
     #id_message_bar{
@@ -41,9 +44,10 @@
         border-color: white;
         display: block;
         border-radius: 50%;
-        height: 50px;
-        width: 50px;
+        height: 45px;
+        width: 45px;
         background-color: white;
+        margin-left: 1em;
     }
 
     .chatroom-message-container{
@@ -54,13 +58,12 @@
     .chatroom-picture-container{
         display: flex;
         flex-direction: column;
-        justify-self: start;
         max-height: 75px;
         min-width: 75px;
     }
 
     .chatroom-message-body-container{
-        max-width: 100%;
+        width: 80%;
         display: flex;
         flex-direction: column;
         flex-grow: 1;
@@ -73,7 +76,6 @@
     }
 
     .chatroom-message-text-container{
-        max-width: 75%;
         display: flex;
         flex-direction: row;
         flex-grow: 1;
@@ -92,7 +94,7 @@
 
     .chatroom-message-body{
         margin-top: 0.5em;
-        max-width: 100%;
+        max-width: 75%;
         word-wrap: break-word;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -102,20 +104,22 @@
     .chatroom-message-timestamp{
         display: flex;
         margin-left: auto;
-        margin-right: 1em;
+        margin-right: 4em;
+        opacity: 0.25;
+        font-size: 8pt;
     }
 
 </style>
 
 <div class="container d-flex flex-row mt-4" id="id_chat_log_container">
-    <div class="d-flex flex-column justify-content-center chat-window">
-        <div class="d-flex flex-column m-4" id="chat_log">
+    <div class="d-flex flex-column justify-content-center chat-window" id="id_chat_window">
+        <div class="d-flex flex-column" id="chat_log">
             {% for message in recent_messages %}
             {% with prev_message=recent_messages|previous:forloop.counter0 %}
-                {% if message.created_at|date:"F d" != prev_message.created_at|date:"F d" %}
-                <div class="date-separator my-4">
+                {% if message.created_at|date:"F d" != prev_message.created_at|date:"F d" or forloop.first %}
+                <div class="date-separator my-2">
                     <span class="date-separator-dashes"></span>
-                    <span id="chat_new_date">{{ message.created_at|date:"F d" }}</span>
+                    <span class="chat-new-date" id="id_chat_new_date">{{ message.created_at|date:"j F Y" }}</span>
                     <span class="date-separator-dashes"></span>
                 </div>
                 {% else %}
@@ -126,34 +130,41 @@
             {% endwith %}
             <div class="chatroom-message-container">
                 <div class="chatroom-picture-container">
-                    {% ifchanged message.user %}
-                    <img class="chatroom-message-user-pic" src="{{ message.user.profile_image.url }}" alt="{{ message.user.username }}'s profile image">
-                    {% endifchanged %}
+                    {% with prev_message=recent_messages|previous:forloop.counter0 %}
+                        {% if message.created_at|date:"F d" != prev_message.created_at|date:"F d" or message.user != prev_message.user or forloop.first %}
+                            <img class="chatroom-message-user-pic" src="{{ message.user.profile_image.url }}" alt="{{ message.user.username }}'s profile image">
+                        {% endif %}
+                    {% endwith %}
                 </div>
                 <div class="chatroom-message-body-container">
                     <div class="chatroom-message-headers-container">
-                        {% ifchanged message.user %}
-                            {% if request.user == message.user %}
-                            <span class="chatroom-message-author-current-user">
-                                {{ message.user.username }}
-                            </span>
-                            {% else %}
-                            <span class="chatroom-message-author-other-user">
-                                {{ message.user.username }}
-                            </span>
+                        {% with prev_message=recent_messages|previous:forloop.counter0 %}
+                            {% if message.created_at|date:"F d" != prev_message.created_at|date:"F d" or message.user != prev_message.user or forloop.first %}
+                                {% if request.user == message.user %}
+                                    <span class="chatroom-message-author-current-user">
+                                        {{ message.user.username }}
+                                    </span>
+                                    {% else %}
+                                    <span class="chatroom-message-author-other-user">
+                                        {{ message.user.username }}
+                                    </span>
+                                {% endif %}
                             {% endif %}
-                            <span class="chatroom-message-timestamp">
-                                {{ message.created_at }}
-                            </span>
-                        {% endifchanged %}
+                        {% endwith %}
                     </div>
                     <div class="chatroom-message-text-container">
                         <span class="chatroom-message-body">
                             {{ message.message }}
                         </span>
+                        <span class="chatroom-message-timestamp">
+                            {{ message.created_at|date:"H:i" }}
+                        </span>
                     </div>
                 </div>
             </div>
+            {% if forloop.first %}
+                {{ message.id|json_script:"lastSentMessageId" }}
+            {% endif %}
             {% endfor %}
         </div>
         <div class="d-flex flex-row p-2" id="id_message_bar">
@@ -167,28 +178,122 @@
 
 <script type="text/javascript">
 
-    const userSentLastMessage = false;
+    const chatLog = document.getElementById('chat_log');
+    var lastLoadedMessageId = JSON.parse(document.getElementById('lastSentMessageId').textContent);
+    var allMessagesLoaded = false;
 
-    window.addEventListener('load', addDashes);
-    window.addEventListener('resize', addDashes);
+    chatLog.addEventListener('scroll', function() {
+        // let allMessages = document.getElementsByClassName('chatroom-message-body');
+        // console.log(allMessages.length);
+
+        if (chatLog.scrollTop == 0 && allMessagesLoaded == false){
+
+            $.ajax({
+                type: 'GET',
+                url: '/publicchat/get_previous_messages/',
+                dataType: 'json',
+                data: {"message_id": lastLoadedMessageId},
+                success: function(response) {
+                    var messages = response.messages;
+                    let fragment = document.createDocumentFragment();
+                    for (var i = messages.length - 1; i >= 0; i--) {
+                        let message = messages[i];
+                        let username = message.username;
+                        let timestamp = message.timestamp;
+                        let text = message.message;
+                        let profile_pic = message.profile_pic;
+                        let messageElement = document.createElement('div');
+                        messageElement.classList.add("chatroom-message-container");
+                        messageElement.innerHTML = `<div class="chatroom-picture-container"><img class="chatroom-message-user-pic" src="${profile_pic}" 
+                            alt="${username}'s profile image"></div><div class="chatroom-message-body-container"><div class="chatroom-message-headers-container"><span class="chatroom-message-author-current-user">${username}</span>
+                            </div><div class="chatroom-message-text-container"><span class="chatroom-message-body">${text}</span><span class="chatroom-message-timestamp">${timestamp}</span></div></div>`
+                        fragment.appendChild(messageElement);
+                        if (i == messages.length - 1) {
+                            lastLoadedMessageId = message.id;
+                        }
+                    }
+                    if (messages.length < 40){
+                            allMessagesLoaded = true;
+                        }
+                    
+                    // create temp container to measure the height of all new messages
+                    var tempNewMessagesContainer = document.createElement('div');
+                    tempNewMessagesContainer.classList.add('temp-new-messages-container');
+                    // cloneNode keeps a copy of fragment with the elements inside so that it can still be used to be inserted
+                    // into the document - otherwise the appendChild method removes the elements from the fragment
+                    tempNewMessagesContainer.appendChild(fragment.cloneNode(true));
+                    tempNewMessagesContainer.style.visibility = 'hidden';
+                    tempNewMessagesContainer.style.position = 'absolute';
+                    document.body.appendChild(tempNewMessagesContainer);
+                    var newMessagesHeight = tempNewMessagesContainer.offsetHeight;
+                    document.body.removeChild(tempNewMessagesContainer);
+                    // insert new messages into top of chat log
+                    chatLog.prepend(fragment);
+                    // adjust scrollTop value when new messages are inserted to prevent scroll moving to the top
+                    // of the newly inserted messages - allows user to remain at the point they scrolled to and can
+                    // continue to scroll up to see new messages
+                    chatLog.scrollTop = chatLog.scrollTop + newMessagesHeight;
+                }
+            });
+        }
+    })
+
+    // checks chat log to see if any date separators are present and converts the last date in these list of
+    // objects (if present) into the formnat "dd/mm/yyyy" so that it can be compared with current date messages
+    // being sent using websockets
+    var chatLogDates = document.getElementsByClassName('chat-new-date');
+    if (chatLogDates.length > 0) {
+        var lastDateObj = chatLogDates[chatLogDates.length - 1];
+        var lastDateSent = lastDateObj.innerHTML;
+        var lastDateSentAsObj = new Date(lastDateSent);
+        var lastDateSentFormatted = lastDateSentAsObj.toLocaleDateString("en-GB");
+    }
+    else {
+        var lastDateSentFormatted = "";
+    }
+
+    window.addEventListener('load', loadChatLog);
+    window.addEventListener('load', addDashesPageLoad);
+    window.addEventListener('resize', addDashesPageLoad);
+
+    // auto scroll to bottom of chat log on page load
+    function loadChatLog() {
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
 
     // calculates number of dashes to separate messages by dates when page is loaded or resized
-    function addDashes() {
-        var chatContainer = document.getElementById('chat_log');
-        var containerWidth = chatContainer.getBoundingClientRect().width;
-        var messageDateContainer = document.getElementById('chat_new_date');
-        var dateContainerWidth = messageDateContainer.getBoundingClientRect().width;
-        console.log(containerWidth)
-        console.log(dateContainerWidth)
-        // &ndash; char has a width of 8 - divide by two as they need to go either side of the date text
-        var numDashes = Math.floor((containerWidth - dateContainerWidth - 20) / 8 / 2);
-        console.log(numDashes)
-        var spanTags = document.getElementsByClassName('date-separator-dashes');
-        for (var i=0; i < spanTags.length; i++) {
-            spanTags[i].innerHTML = '&ndash;'.repeat(numDashes);
+    function addDashesPageLoad() {
+        const chatContainer = document.getElementById('chat_log');
+        if (chatContainer) {
+            var containerWidth = chatContainer.getBoundingClientRect().width - 150;
+            var messageDateContainer = document.getElementById('id_chat_new_date');
+            var dateContainerWidth = messageDateContainer.getBoundingClientRect().width;
+            // &ndash; char has a width of 8 - divide by two as they need to go either side of the date text
+            var numDashes = Math.floor((containerWidth - dateContainerWidth - 20) / 8 / 2);
+            var spanTags = document.getElementsByClassName('date-separator-dashes');
+            for (var i=0; i < spanTags.length; i++) {
+                spanTags[i].innerHTML = '&ndash;'.repeat(numDashes);
+            }
         }
     }
 
+    // get number of dashes to add when date has changed if message when sent via websocket
+    function addDashesWebSocket(dateContainer) {
+        const chatContainer = document.getElementById('chat_log');
+        var containerWidth = chatContainer.getBoundingClientRect().width - 150;
+
+        var tempElement = dateContainer;
+        tempElement.style.visibility = 'hidden';
+        tempElement.style.position = 'absolute'; 
+
+        document.body.appendChild(tempElement);
+        var dateContainerWidth = tempElement.offsetWidth;
+        document.body.removeChild(tempElement);
+
+        // &ndash; char has a width of 8 - divide by two as they need to go either side of the date text
+        var numDashes = Math.floor((containerWidth - dateContainerWidth - 20) / 8 / 2);
+        return numDashes;
+    }
 
     const chatSocket = new WebSocket(
         'ws://' + window.location.host + '/ws/public_chat/'
@@ -196,6 +301,49 @@
     chatSocket.onmessage = function (e) {
         const data = JSON.parse(e.data);
         console.log(data);
+
+        const messagesElement = document.querySelector('#chat_log');
+
+        let dateObj = new Date(data.timestamp);
+        let websocketMessageDateSentFormatted = dateObj.toLocaleDateString("en-GB");
+
+        const requestUsername = JSON.parse(document.getElementById('username').textContent);
+
+        // if websocket message sent on new day, add the date separator to the document before adding the message
+        if (websocketMessageDateSentFormatted != lastDateSentFormatted) {
+            console.log("true")
+            const dateSeperatorContainer = document.createElement('div');
+            dateSeperatorContainer.classList.add('date-separator');
+            const dateSeperatorDashesSpan1 = document.createElement('span');
+            dateSeperatorDashesSpan1.classList.add('date-separator-dashes');
+            const dateSeperatorDashesSpan2 = document.createElement('span');
+            dateSeperatorDashesSpan2.classList.add('date-separator-dashes');
+            var dateSeperatorDateSpan = document.createElement('span');
+            dateSeperatorDateSpan.classList.add('chat-new-date');
+
+            // format date of iso string to match that of page reload date separator
+            let isoDate = data.timestamp;
+            let date = new Date(isoDate);
+            const options = {day: 'numeric', month: 'long', year: 'numeric'};
+            const formatter = new Intl.DateTimeFormat('en-GB', options);
+            let formattedDate = formatter.format(date);
+            dateSeperatorDateSpan.textContent = " " + formattedDate + " ";
+
+            let dashCount = addDashesWebSocket(dateSeperatorDateSpan);
+            // remove style properties set by temp element when calling addDashesWebSocket
+            dateSeperatorDateSpan.style.removeProperty('visibility');
+            dateSeperatorDateSpan.style.removeProperty('position');
+
+            // add dashes for either side of the date
+            dateSeperatorDashesSpan1.innerHTML = "&ndash;".repeat(dashCount);
+            dateSeperatorDashesSpan2.innerHTML = "&ndash;".repeat(dashCount);
+
+            dateSeperatorContainer.appendChild(dateSeperatorDashesSpan1);
+            dateSeperatorContainer.appendChild(dateSeperatorDateSpan);
+            dateSeperatorContainer.appendChild(dateSeperatorDashesSpan2);
+            messagesElement.appendChild(dateSeperatorContainer);
+            lastDateSentFormatted = websocketMessageDateSentFormatted;
+        }
 
         const messageElement = document.createElement('div');
         messageElement.classList.add('chatroom-message-container');
@@ -209,9 +357,13 @@
             imageElement.alt = data.username + '\'s profile image';
             imageElement.classList.add('chatroom-message-user-pic')
             pictureElement.appendChild(imageElement);
-        }
 
-        messageElement.appendChild(pictureElement);
+            // separate messages from different users
+            const para1 = document.createElement('p');
+            const para2 = document.createElement('p');
+            messagesElement.appendChild(para1);
+            messagesElement.appendChild(para2);
+        }
 
         const messageBodyElement = document.createElement('div');
         messageBodyElement.classList.add('chatroom-message-body-container');
@@ -224,17 +376,14 @@
 
         messageBodyElement.appendChild(messageHeaderElement);
         messageBodyElement.appendChild(messageTextElement);
-        messageElement.appendChild(messageBodyElement);
 
         if (data.username) {
-            const requestUsername = JSON.parse(document.getElementById('username').textContent);
             // if message is from current user, make their username in the message orange
             if (data.username == requestUsername) {
                 const authorElement = document.createElement('span');
                 authorElement.classList.add('chatroom-message-author-current-user');
                 authorElement.textContent = data.username;
                 messageHeaderElement.appendChild(authorElement);
-                // authorElement.style.color = "orange";
             }
             else {
                 const authorElement = document.createElement('span');
@@ -249,8 +398,26 @@
         bodyElement.textContent = data.message;
         messageTextElement.appendChild(bodyElement);
 
-        const messagesElement = document.querySelector('#chat_log');
+        const timestampElement = document.createElement('span');
+        timestampElement.classList.add('chatroom-message-timestamp');
+        // convert iso format timestamp into date object so that it can be parsed
+        let timestampObj = new Date(data.timestamp);
+        // convert iso timestamp into "hh:mm" format for chat log
+        let formattedTime = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        timestampElement.textContent = formattedTime;
+        messageTextElement.appendChild(timestampElement);
+
+        // add message to chat log
+        messageElement.appendChild(pictureElement);
+        messageElement.appendChild(messageBodyElement);
         messagesElement.appendChild(messageElement);
+
+        // is current user sends new message, auto scroll to bottom of chat log
+        if (requestUsername == data.username_hidden) {
+            setTimeout(function() {
+                messagesElement.scrollTop = messagesElement.scrollHeight;
+            }, 100);
+        }
     }
 
     chatSocket.onclose = function(e) {

@@ -1,4 +1,6 @@
 import json
+import datetime
+from django.utils import timezone
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
@@ -27,6 +29,7 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
         current_user = self.scope['user']
         if current_user.is_authenticated:
             username = current_user.username
+            username_hidden = username
             profile_pic = current_user.profile_image.url
 
             try:
@@ -36,9 +39,12 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
                 last_message = None
             
             # if current user sent the last message that was posted in the chatroom, don't continue to display
-            # their username and profile pic until someone else sends a new message
+            # their username and profile pic until someone else sends a new message - unless the message is sent
+            # on a new day, in which case display profile pic and username regardless
             if last_message:
-                if last_message.user == current_user:
+                last_message_date = str(last_message.created_at)[:10]
+                current_message_date = str(datetime.date.today())
+                if last_message.user == current_user and last_message_date == current_message_date:
                     username = ""
                     profile_pic = ""
 
@@ -49,6 +55,16 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
 
             await self.save_message(current_user, message)
 
+            try:
+                # access the user model associated with the last posted message in the chat
+                last_message = await database_sync_to_async(PublicMessages.objects.select_related('user').last)()
+                # convert timestamp to iso format so that it can be serialized
+                timestamp = last_message.created_at.isoformat()
+            except Exception as e:
+                print("error getting message timestamp")
+                print(e)
+                timestamp = ""
+
             await self.channel_layer.group_send(
                 self.room_group_name,
                 # event
@@ -57,6 +73,8 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
                     'message': message,
                     'username': username,
                     'profile_pic': profile_pic,
+                    'timestamp': timestamp,
+                    'username_hidden': username_hidden
                 }
             )
 
@@ -66,13 +84,17 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
         message = event['message']
         username = event['username']
         profile_pic = event['profile_pic']
+        timestamp = event['timestamp']
+        username_hidden = event['username_hidden']
 
         # sends message to WebSocket where javascript function then appends it to the chat log, thus
         # message is shown on all users inside the room group's browsers
         await self.send(text_data=json.dumps({
                 'message': message,
                 'username': username,
-                'profile_pic': profile_pic
+                'profile_pic': profile_pic,
+                'timestamp': timestamp,
+                'username_hidden': username_hidden
             }))
 
 

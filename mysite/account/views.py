@@ -253,7 +253,6 @@ def save_temp_image(image_b64, user):
         return url
     except Exception as e:
         raise e
-    return None
 
 
 def crop_image(request, *args, **kwargs):
