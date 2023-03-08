@@ -11,14 +11,22 @@
     #id_chat_log_container{
         height: calc(100vh - 180px);
         flex: 1;
-        background-color: grey;
         padding-left: 0;
         padding-right: 0;
     }
 
     .chat-window{
         height: 100%;
-        width: 100%;
+        width: 80%;
+        background-color: grey;
+    }
+
+    #id_chat_users_container{
+        background-color: grey;
+        padding-left: 2em;
+        padding-right: 2em;
+        overflow-x: hidden;
+        overflow-y: visible;
     }
 
     #chat_log{
@@ -48,6 +56,16 @@
         width: 45px;
         background-color: white;
         margin-left: 1em;
+    }
+
+    .chat-user-image{
+        border: 1px;
+        border-color: white;
+        display: block;
+        border-radius: 50%;
+        height: 30px;
+        width: 30px;
+        background-color: white;
     }
 
     .chatroom-message-container{
@@ -83,13 +101,19 @@
 
     .chatroom-message-author-other-user{
         display: flex;
-        font-size: 18pt;
+        font-size: 16pt;
+        color: silver;
     }
 
     .chatroom-message-author-current-user{
         display: flex;
         font-size: 16pt;
         color: orange;
+    }
+
+    .chat-user-username{
+        font-size: 12pt;
+        color: silver;
     }
 
     .chatroom-message-body{
@@ -103,10 +127,24 @@
 
     .chatroom-message-timestamp{
         display: flex;
+        margin-top: auto;
         margin-left: auto;
         margin-right: 4em;
         opacity: 0.25;
         font-size: 8pt;
+    }
+
+    .date-separator{
+        margin-top: 2em;
+        margin-bottom: 2em;
+    }
+
+    .user-profile-link-username{
+        text-decoration: none !important;
+    }
+
+    .user-profile-link-image{
+        text-decoration: none !important;
     }
 
 </style>
@@ -117,7 +155,7 @@
             {% for message in recent_messages %}
             {% with prev_message=recent_messages|previous:forloop.counter0 %}
                 {% if message.created_at|date:"F d" != prev_message.created_at|date:"F d" or forloop.first %}
-                <div class="date-separator my-2">
+                <div class="date-separator">
                     <span class="date-separator-dashes"></span>
                     <span class="chat-new-date" id="id_chat_new_date">{{ message.created_at|date:"j F Y" }}</span>
                     <span class="date-separator-dashes"></span>
@@ -132,7 +170,9 @@
                 <div class="chatroom-picture-container">
                     {% with prev_message=recent_messages|previous:forloop.counter0 %}
                         {% if message.created_at|date:"F d" != prev_message.created_at|date:"F d" or message.user != prev_message.user or forloop.first %}
+                        <a class="user-profile-link-image" href="{% url 'account:profile' pk=message.user.id %}">
                             <img class="chatroom-message-user-pic" src="{{ message.user.profile_image.url }}" alt="{{ message.user.username }}'s profile image">
+                        </a>
                         {% endif %}
                     {% endwith %}
                 </div>
@@ -141,13 +181,17 @@
                         {% with prev_message=recent_messages|previous:forloop.counter0 %}
                             {% if message.created_at|date:"F d" != prev_message.created_at|date:"F d" or message.user != prev_message.user or forloop.first %}
                                 {% if request.user == message.user %}
-                                    <span class="chatroom-message-author-current-user">
-                                        {{ message.user.username }}
-                                    </span>
+                                    <a class="user-profile-link-username" href="{% url 'account:profile' pk=message.user.id %}">
+                                        <span class="chatroom-message-author-current-user">
+                                            {{ message.user.username }}
+                                        </span>
+                                    </a>
                                     {% else %}
-                                    <span class="chatroom-message-author-other-user">
-                                        {{ message.user.username }}
-                                    </span>
+                                    <a class="user-profile-link-username" href="{% url 'account:profile' pk=message.user.id %}">
+                                        <span class="chatroom-message-author-other-user">
+                                            {{ message.user.username }}
+                                        </span>
+                                    </a>
                                 {% endif %}
                             {% endif %}
                         {% endwith %}
@@ -168,24 +212,52 @@
             {% endfor %}
         </div>
         <div class="d-flex flex-row p-2" id="id_message_bar">
-            <input class="mx-2" id="chat_message_input" type="text" size="100">
+            <input class="mx-2" id="chat_message_input" type="text" size="90">
             <input id="chat_message_submit" type="button" value="Send">
+        </div>
+    </div>
+    <div class="d-flex flex-column ml-4" id="id_chat_users_container">
+        <div class="d-flex flex-column" id="id_chat_users_log">
+            {% for user in chat_users %}
+            <div class="d-flex flex-row align-content-center my-2 chat-user-container">
+                <div class="d-flex flex-column mr-1 chat-user-picture-container">
+                    <a class="user-profile-link-image" href="{% url 'account:profile' pk=user.id %}">
+                        <img class="chat-user-image" src="{{ user.profile_image.url }}" alt="{{ user.username }}'s profile image">
+                    </a>
+                </div>
+                <div class="d-flex flex-column ml-1 chat-user-username-container">
+                    <a class="user-profile-link-username" href="{% url 'account:profile' pk=user.id %}">
+                        <span class="chat-user-username">
+                            {{ user.username }}
+                        </span>
+                    </a>
+                </div>
+                <div class="d-flex flex-column chat-user-online-status-container">
+
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
 
 {{ username|json_script:"username" }}
+{{ userid|json_script:"userid" }}
 
 <script type="text/javascript">
 
     const chatLog = document.getElementById('chat_log');
     var lastLoadedMessageId = JSON.parse(document.getElementById('lastSentMessageId').textContent);
+    var requestUsername = JSON.parse(document.getElementById('username').textContent);
+    var requestUserid = JSON.parse(document.getElementById('userid').textContent);
     var allMessagesLoaded = false;
 
-    chatLog.addEventListener('scroll', function() {
-        // let allMessages = document.getElementsByClassName('chatroom-message-body');
-        // console.log(allMessages.length);
+    // for handling iso format date conversions
+    const options = {day: 'numeric', month: 'long', year: 'numeric'};
+    const formatter = new Intl.DateTimeFormat('en-GB', options);
 
+    chatLog.addEventListener('scroll', function() {
+        // used to retrieve previous 40 messages when scrolling up until all previous messages have been retrieved
         if (chatLog.scrollTop == 0 && allMessagesLoaded == false){
 
             $.ajax({
@@ -200,13 +272,78 @@
                         let message = messages[i];
                         let username = message.username;
                         let timestamp = message.timestamp;
+                        let userid = message.userid;
+                        let timestampAsObj = new Date(timestamp);
+                        let timestampFormattedAsDate = formatter.format(timestampAsObj);
+                        let timestampFormattedAsTime = timestampAsObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        
                         let text = message.message;
                         let profile_pic = message.profile_pic;
+                        let messageElementHtml = "";
+                        let messagePartOne = `<div class="chatroom-picture-container">`;
+                        let messagePartTwo = `</div><div class="chatroom-message-body-container"><div class="chatroom-message-headers-container">`
+                        let messagePartThree = `</div><div class="chatroom-message-text-container"><span class="chatroom-message-body">${text}</span><span class="chatroom-message-timestamp">${timestampFormattedAsTime}</span></div></div>`
+                        
+                        let isDateSeparatorRequired = false;
+                        let isProfileLinkRequired = false;
+                        let dateSeparatorDiv = null;
+                        let para1 = null;
+                        let para2 = null;
+
+                        if (i == messages.length - 1) {
+                            // only show new date separator regardless of if date has changed when at end of previous message results
+                            if (messages.length < 40) {
+                                isDateSeparatorRequired = true;
+                                isProfileLinkRequired = true;
+                            }
+                        }
+                        else {
+                            let prevTimestamp = messages[i + 1].timestamp;
+                            let prevTimestampAsObj = new Date(timestamp);
+                            let prevTimestampFormattedAsDate = formatter.format(prevTimestampAsObj);
+
+                            if (timestampFormattedAsDate != prevTimestampFormattedAsDate) {
+                                isDateSeparatorRequired = true;
+                                isProfileLinkRequired = true;
+                            }
+                            else if (username != messages[i + 1].username) {
+                                para1 = document.createElement('p');
+                                para2 = document.createElement('p');
+                                isProfileLinkRequired = true;
+                            }
+                        }
+
+                        if (isDateSeparatorRequired) {
+                            dateSeparatorDiv = document.createElement('div');
+                            dateSeparatorDiv.classList.add('date-separator');
+                            dateSeparatorDiv.innerHTML = `<span class="date-separator-dashes"></span>
+                                <span class="chat-new-date" id="id_chat_new_date">${timestampFormattedAsDate}</span>
+                                <span class="date-separator-dashes"></span>`
+                        }
+
+                        if (isProfileLinkRequired) {
+                            messagePartOne += `<a class="user-profile-link-image" href="/account/${userid}/"><img class="chatroom-message-user-pic" src="${profile_pic}" alt="${username}'s profile image"></a>`
+                            if (username == requestUsername) {
+                                messagePartTwo += `<a class="user-profile-link-username" href="/account/${userid}/"><span class="chatroom-message-author-current-user">${username}</span></a>`
+                            }
+                            else {
+                                messagePartTwo += `<a class="user-profile-link-username" href="/account/${userid}/"><span class="chatroom-message-author-other-user">${username}</span></a>`
+                            }
+                        }
+
+                        messageElementHtml = messageElementHtml + messagePartOne + messagePartTwo + messagePartThree;
+
                         let messageElement = document.createElement('div');
                         messageElement.classList.add("chatroom-message-container");
-                        messageElement.innerHTML = `<div class="chatroom-picture-container"><img class="chatroom-message-user-pic" src="${profile_pic}" 
-                            alt="${username}'s profile image"></div><div class="chatroom-message-body-container"><div class="chatroom-message-headers-container"><span class="chatroom-message-author-current-user">${username}</span>
-                            </div><div class="chatroom-message-text-container"><span class="chatroom-message-body">${text}</span><span class="chatroom-message-timestamp">${timestamp}</span></div></div>`
+                        messageElement.innerHTML = messageElementHtml;
+                        
+                        if (dateSeparatorDiv != null) {
+                            fragment.appendChild(dateSeparatorDiv);
+                        }
+                        else if (para1 != null && para2 != null){
+                            fragment.appendChild(para1);
+                            fragment.appendChild(para2);
+                        }
                         fragment.appendChild(messageElement);
                         if (i == messages.length - 1) {
                             lastLoadedMessageId = message.id;
@@ -215,7 +352,7 @@
                     if (messages.length < 40){
                             allMessagesLoaded = true;
                         }
-                    
+
                     // create temp container to measure the height of all new messages
                     var tempNewMessagesContainer = document.createElement('div');
                     tempNewMessagesContainer.classList.add('temp-new-messages-container');
@@ -229,10 +366,12 @@
                     document.body.removeChild(tempNewMessagesContainer);
                     // insert new messages into top of chat log
                     chatLog.prepend(fragment);
+
                     // adjust scrollTop value when new messages are inserted to prevent scroll moving to the top
                     // of the newly inserted messages - allows user to remain at the point they scrolled to and can
                     // continue to scroll up to see new messages
                     chatLog.scrollTop = chatLog.scrollTop + newMessagesHeight;
+                    addDashesPageLoad();
                 }
             });
         }
@@ -307,11 +446,10 @@
         let dateObj = new Date(data.timestamp);
         let websocketMessageDateSentFormatted = dateObj.toLocaleDateString("en-GB");
 
-        const requestUsername = JSON.parse(document.getElementById('username').textContent);
+        let isDateSeparatorAdded = false;
 
         // if websocket message sent on new day, add the date separator to the document before adding the message
         if (websocketMessageDateSentFormatted != lastDateSentFormatted) {
-            console.log("true")
             const dateSeperatorContainer = document.createElement('div');
             dateSeperatorContainer.classList.add('date-separator');
             const dateSeperatorDashesSpan1 = document.createElement('span');
@@ -324,8 +462,6 @@
             // format date of iso string to match that of page reload date separator
             let isoDate = data.timestamp;
             let date = new Date(isoDate);
-            const options = {day: 'numeric', month: 'long', year: 'numeric'};
-            const formatter = new Intl.DateTimeFormat('en-GB', options);
             let formattedDate = formatter.format(date);
             dateSeperatorDateSpan.textContent = " " + formattedDate + " ";
 
@@ -342,6 +478,9 @@
             dateSeperatorContainer.appendChild(dateSeperatorDateSpan);
             dateSeperatorContainer.appendChild(dateSeperatorDashesSpan2);
             messagesElement.appendChild(dateSeperatorContainer);
+
+            isDateSeparatorAdded = true;
+
             lastDateSentFormatted = websocketMessageDateSentFormatted;
         }
 
@@ -352,17 +491,24 @@
         pictureElement.classList.add('chatroom-picture-container');
 
         if (data.profile_pic) {
+            let linkUrl = "/account/" + requestUserid + "/";
+            const imageElementLink = document.createElement('a');
+            imageElementLink.classList.add('user-profile-link-image');
+            imageElementLink.setAttribute("href", linkUrl);
             const imageElement = document.createElement('img');
             imageElement.src = data.profile_pic;
             imageElement.alt = data.username + '\'s profile image';
             imageElement.classList.add('chatroom-message-user-pic')
-            pictureElement.appendChild(imageElement);
+            imageElementLink.appendChild(imageElement);
+            pictureElement.appendChild(imageElementLink);
 
-            // separate messages from different users
-            const para1 = document.createElement('p');
-            const para2 = document.createElement('p');
-            messagesElement.appendChild(para1);
-            messagesElement.appendChild(para2);
+            if (isDateSeparatorAdded == false) {
+                // separate messages from different users
+                const para1 = document.createElement('p');
+                const para2 = document.createElement('p');
+                messagesElement.appendChild(para1);
+                messagesElement.appendChild(para2);
+            }
         }
 
         const messageBodyElement = document.createElement('div');
@@ -378,18 +524,24 @@
         messageBodyElement.appendChild(messageTextElement);
 
         if (data.username) {
+            let linkUrl = "/account/" + requestUserid + "/";
+            const usernameElementLink = document.createElement('a');
+            usernameElementLink.classList.add('user-profile-link-username');
+            usernameElementLink.setAttribute("href", linkUrl);
             // if message is from current user, make their username in the message orange
             if (data.username == requestUsername) {
                 const authorElement = document.createElement('span');
                 authorElement.classList.add('chatroom-message-author-current-user');
                 authorElement.textContent = data.username;
-                messageHeaderElement.appendChild(authorElement);
+                usernameElementLink.appendChild(authorElement);
+                messageHeaderElement.appendChild(usernameElementLink);
             }
             else {
                 const authorElement = document.createElement('span');
                 authorElement.classList.add('chatroom-message-author-other-user');
                 authorElement.textContent = data.username;
-                messageHeaderElement.appendChild(authorElement);
+                usernameElementLink.appendChild(authorElement);
+                messageHeaderElement.appendChild(usernameElementLink);
             }
         }
 

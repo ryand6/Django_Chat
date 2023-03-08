@@ -17,6 +17,7 @@ from django.core import files
 
 from account.forms import RegistrationForm, AccountUpdateForm, AccountInfoUpdateForm
 from account.models import AccountInfo, Account
+from publicchat.models import PublicChat
 from friends.models import FriendList, FriendRequest
 from friends.views import is_friend_request_active
 
@@ -45,7 +46,10 @@ class RegisterView(View):
         pw = form.cleaned_data.get("password1")
         account = authenticate(email=email, password=pw)
         login(request, account)
+        public_chatroom = PublicChat.objects.all().first()
+        public_chatroom.users.add(account)
         redirect_url = reverse("home:all")
+
         return redirect(redirect_url)
 
 
