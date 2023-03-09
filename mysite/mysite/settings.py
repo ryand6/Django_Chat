@@ -241,6 +241,9 @@ if (len(sys.argv) >= 2 and sys.argv[1] == 'runserver'):
     }
 '''
 
+# set session cookie expiration to 7 days
+SESSION_COOKIE_AGE = 86400 * 7
+
 #SMTP Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'

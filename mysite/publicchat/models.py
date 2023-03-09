@@ -17,17 +17,17 @@ class PublicChat(models.Model):
             raise ValidationError('There can only be one instance of this model') 
         return super(PublicChat, self).save(*args, **kwargs)
 
-    def connect_user(self, user):
-        # checks if current user is stored in list of active users and adds them if not
-        if not user in self.users.all():
-            self.users.add(user)
-            self.save()
+    # def connect_user(self, user):
+    #     # checks if current user is stored in list of active users and adds them if not
+    #     if not user in self.users.all():
+    #         self.users.add(user)
+    #         self.save()
 
-    def disconnect_user(self, user):
-        # removes active user when they disconnect from chatroom
-        if user in self.users.all():
-            self.users.remove(user)
-            self.save()
+    # def disconnect_user(self, user):
+    #     # removes active user when they disconnect from chatroom
+    #     if user in self.users.all():
+    #         self.users.remove(user)
+    #         self.save()
 
 
 class PublicChatMessagesManager(models.Manager):

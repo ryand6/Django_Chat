@@ -5,6 +5,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 from .models import PublicChat, PublicMessages
+from account.models import Account
 
 
 class PublicChatRoomConsumer(AsyncWebsocketConsumer):
@@ -15,6 +16,19 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
         await self.accept()
+
+        user = self.scope['user']
+        user_id = user.id
+
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            # event
+            {
+                'type': 'send.userid',
+                'user_id': user_id,
+                'status': 'connected',
+            }
+        )
 
 
     async def receive(self, text_data):
@@ -96,6 +110,27 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
                 'timestamp': timestamp,
                 'username_hidden': username_hidden
             }))
+        
+
+    async def send_userid(self, event):
+        user_id = event['user_id']
+        status = event['status']
+
+        online = False
+
+        if status == "connected":
+            online = True
+
+        await self.set_user_status(user_id, online)
+
+        await self.send(text_data=json.dumps({'user_id': user_id, 'status': status}))
+
+
+    @database_sync_to_async
+    def set_user_status(self, user_id, online):
+        user = Account.objects.get(pk=user_id)
+        user.online = online
+        user.save()
 
 
     async def save_message(self, user, message):
@@ -107,4 +142,18 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
 
 
     async def disconnect(self, close_code):
+
+        user = self.scope['user']
+        user_id = user.id
+
+        await self.channel_layer.group_send(
+                self.room_group_name,
+                # event
+                {
+                    'type': 'send.userid',
+                    'user_id': user_id,
+                    'status': 'disconnected',
+                }
+        )
+
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
