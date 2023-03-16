@@ -1,0 +1,39 @@
+<script type="text/javascript">
+    var token = "{{ csrf_token }}";
+
+    function sendFriendMessage(element){
+        // access url through element attribute so that you're not using django template variables inside 
+        // javascript - protect against Cross-Site Scripting (XSS)
+        const myUrl = element.getAttribute('data-request-url');
+        const friend_id = element.getAttribute('data-friend-id');
+        console.log(myUrl);
+
+        requestData = {
+            "csrfmiddlewaretoken": token,
+            "friend_id": friend_id,
+        }
+
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: myUrl,
+            timeout: 5000,
+            data: requestData,
+            success: function(data){
+                if(data.response == "success"){
+                    console.log("yes")
+                    console.log(data.response)
+                    console.log(data.room_id)
+                    window.location.href = '/privatechat/' + data.room_id + '/chat/'
+                }
+                else if(data.response != null){
+                    alert(data.response);
+                }
+            },
+            error: function(data){
+                console.log(data);
+                alert("Something went wrong: " + data);
+            },
+        })
+    }
+</script>

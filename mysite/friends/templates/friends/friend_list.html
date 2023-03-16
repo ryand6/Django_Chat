@@ -56,8 +56,11 @@
                         <div class="d-flex flex-row card-right flex-grow-1 justify-content-end mx-2">
                             <div class="d-flex flex-row send-friend-message-container justify-content-end p-3">
                                 <div class="d-flex flex-row align-items-center btn btn-primary m-2 px-2" id="id_send_private_message">
-                                    <span class="material-symbols-outlined">sms</span>
-                                    <span class="message-btn-text m-auto pl-2">Message</span>
+                                    <a class="send-friend-private-message" data-friend-id="{{ friend.id }}" data-request-url="{% url 'privatechat:create_chat' %}"
+                                    onclick='sendFriendMessage(this);'>
+                                        <span class="material-symbols-outlined">sms</span>
+                                        <span class="message-btn-text m-auto pl-2">Message</span>
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -76,5 +79,7 @@
         {% endif %}
     </div>
 </div>
+
+{% include 'chat_scripts/send_message.html' %}
 
 {% endblock content %}

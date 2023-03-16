@@ -1,0 +1,51 @@
+<script type="text/javascript">
+    
+    window.addEventListener('load', loadChatLog);
+    window.addEventListener('load', addDashesPageLoad);
+    window.addEventListener('resize', addDashesPageLoad);
+
+    // auto scroll to bottom of chat log on page load
+    function loadChatLog() {
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    // calculates number of dashes to separate messages by dates when page is loaded or resized
+    function addDashesPageLoad() {
+        const chatContainer = document.getElementById('chat_log');
+        if (chatContainer) {
+            var containerWidth = chatContainer.getBoundingClientRect().width - 150;
+            try {
+                var messageDateContainer = document.getElementById('id_chat_new_date');
+                var dateContainerWidth = messageDateContainer.getBoundingClientRect().width;
+                // &ndash; char has a width of 8 - divide by two as they need to go either side of the date text
+                var numDashes = Math.floor((containerWidth - dateContainerWidth - 20) / 8 / 2);
+                var spanTags = document.getElementsByClassName('date-separator-dashes');
+                for (var i=0; i < spanTags.length; i++) {
+                    spanTags[i].innerHTML = '&ndash;'.repeat(numDashes);
+                    }
+                }
+            catch (error) {
+                console.log("No messages in chat yet")
+                return
+            }
+        }
+    }
+
+    // get number of dashes to add when date has changed if message when sent via websocket
+    function addDashesWebSocket(dateContainer) {
+        const chatContainer = document.getElementById('chat_log');
+        var containerWidth = chatContainer.getBoundingClientRect().width - 150;
+
+        var tempElement = dateContainer;
+        tempElement.style.visibility = 'hidden';
+        tempElement.style.position = 'absolute'; 
+
+        document.body.appendChild(tempElement);
+        var dateContainerWidth = tempElement.offsetWidth;
+        document.body.removeChild(tempElement);
+
+        // &ndash; char has a width of 8 - divide by two as they need to go either side of the date text
+        var numDashes = Math.floor((containerWidth - dateContainerWidth - 20) / 8 / 2);
+        return numDashes;
+    }
+</script>

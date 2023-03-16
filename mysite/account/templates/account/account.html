@@ -136,8 +136,11 @@
                             {% if is_friend %}
                             <!--add javascript onclick function to div-->
                             <div class="d-flex flex-row align-items-center btn btn-primary m-2 px-2" id="id_send_private_message">
-                                <span class="material-symbols-outlined">sms</span>
-                                <span class="message-btn-text m-auto pl-2">Message</span>
+                                <a class="send-friend-private-message" data-friend-id="{{ account.id }}" data-request-url="{% url 'privatechat:create_chat' %}"
+                                onclick='sendFriendMessage(this);'>
+                                    <span class="material-symbols-outlined">sms</span>
+                                    <span class="message-btn-text m-auto pl-2">Message</span>
+                                </a>
                             </div>
                             {% else %}
                                 {% if received_friend_request %}
@@ -254,5 +257,6 @@
 {% include 'scripts/decline_friend_request.html' %}
 {% include 'scripts/accept_friend_request.html' %}
 {% include 'scripts/remove_friend.html' %}
+{% include 'chat_scripts/send_message.html' %}
 
 {% endblock content %}

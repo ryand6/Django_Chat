@@ -1,0 +1,271 @@
+{% extends "base_menu.html" %}
+{% block content %}
+<style type="text/css">
+
+    body{
+        overflow-y: hidden;
+    } 
+
+    #id_chat_log_container{
+        height: calc(100vh - 180px);
+        flex: 1;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    #id_all_private_chats_container{
+        width: 70%;
+        height: 100%;
+        margin-right: 2em;
+    }
+
+    #id_private_chats_log{
+        background-color: grey;
+        padding-left: 2em;
+        padding-right: 2em;
+        overflow-x: hidden;
+        overflow-y: visible;
+        height: 100%;
+    }
+
+    .private-chats-room-pic{
+        border: 1px;
+        border-color: white;
+        display: block;
+        border-radius: 50%;
+        height: 45px;
+        width: 45px;
+        background-color: white;
+        margin-left: 1em;
+    }
+
+    .private-chats-room-message-container{
+        display: flex;
+        flex-direction: row;
+        background-color: black;
+        padding: 0.5em;
+        border-radius: 10px;
+        margin-top: 1em;
+    }
+
+    .private-chats-room-picture-container{
+        display: flex;
+        flex-direction: column;
+        max-height: 75px;
+        min-width: 75px;
+    }
+
+    .private-chats-room-body-container{
+        width: 75%;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .private-chats-room-headers-container{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .private-chats-room-message-text-container{
+        display: flex;
+        flex-direction: row;
+        flex-grow: 1;
+    }
+
+    .private-chats-room-members{
+        display: flex;
+        font-size: 14pt;
+        font-weight: bold;
+        color: white;
+    }
+
+    .private-chats-room-last-message{
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        color: #E7F6F2;
+        width: 75%;
+    }
+
+    .user-online-circle{
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background-color: green; 
+        box-shadow: 0px 1px 3px rgba(0,0,0,0.3);
+        z-index: 1;
+        border: 1px;
+        border-color: white;
+    }
+
+    .user-offline-circle{
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background-color: lightgrey; 
+        box-shadow: 0px 1px 3px rgba(0,0,0,0.3);
+        z-index: 1;
+        border: 1px;
+        border-color: white;
+    }
+
+    .private-chat-link{
+        text-decoration: none !important;
+    }
+    
+    .private-chats-room-last-date-sent{
+        margin-left: auto;
+        text-decoration: none !important;
+        color: white;
+    }
+
+</style>
+
+<div class="container d-flex flex-row mt-4 justify-content-center" id="id_chat_log_container">
+    <div class="d-flex flex-column" id="id_all_private_chats_container">
+        <div class="d-flex flex-column" id="id_private_chats_log">
+            <h3>Chats</h3>
+            {% for chat in chats %}
+                {% if chat.last_message %}
+                    <a class="private-chat-link" href="{% url 'privatechat:chat' chat.id %}" id="private_chat_link_{{ chat.id }}">
+                        <div class="private-chats-room-message-container">
+                            <div class="private-chats-room-picture-container">
+                                {% if chat.users.all|length == 2 %}
+                                    {% for user in chat.users.all %}
+                                        {% if user != request.user %}
+                                            <img class="private-chats-room-pic" src="{{ user.profile_image.url }}" alt="chat room {{ chat.id }}'s profile image">
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div class="private-chats-room-body-container">
+                                <div class="private-chats-room-headers-container">
+                                    <span class="private-chats-room-members" id="id_room_members_{{ chat.id }}">
+                                        {% if chat.users.all|length == 2 %}
+                                            {% for user in chat.users.all %}
+                                                {% if user != request.user %}
+                                                    {{ user.username }}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% elif chat.users.all|length > 2 %}
+                                            {% for user in chat.users.all %}
+                                                {% if user != request.user %}
+                                                    {{ user.username }}{% if not forloop.last %}, {% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    </span>
+                                    <span class="private-chats-room-last-date-sent" id="id_room_last_sent_{{ chat.id }}">
+                                        {{ chat.last_date|date:"j F Y" }}
+                                    </span>
+                                </div>
+                                <div class="private-chats-room-message-text-container">
+                                    <span class="private-chats-room-last-message" id="id_room_last_message_{{ chat.id }}">
+                                        {% if chat.last_user == userid %}
+                                            You: {{ chat.last_message }}
+                                        {% else %}
+                                            {{ chat.last_message }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{{ userid|json_script:"userid" }}
+
+<script type="text/javascript">
+
+    var requestUserid = JSON.parse(document.getElementById('userid').textContent);
+
+    // for handling iso format date conversions
+    const options = {day: 'numeric', month: 'long', year: 'numeric'};
+    const formatter = new Intl.DateTimeFormat('en-GB', options);
+
+    const chatSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/all_private_chats/' + requestUserid + '/'
+    );
+
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        console.log(data);
+
+        console.log(Object.keys(data).length);
+
+        // message response for online status has an object length of two - don't run ajax request when this
+        // is fired - only when the length of the object is 1 for the room_id
+        if (Object.keys(data).length == 1) {
+            $.ajax({
+                type: 'GET',
+                url: '/privatechat/update_chat_log/',
+                dataType: 'json',
+                data: {"room_id": data.room_id},
+                success: function(response) {
+                    console.log("Response: ");
+                    console.log(response);
+
+                    let timestampAsObj = new Date(response.last_date);
+                    let timestampFormattedAsDate = formatter.format(timestampAsObj);
+                    
+                    // if chatroom doesn't exist in chat log, add the new chat room to the log
+                    var chatLink = document.getElementById('private_chat_link_' + response.chat_id);
+                    console.log(chatLink);
+                    var chatsLog = document.getElementById('id_private_chats_log');
+                    var elementToInsertAfter = chatsLog.children[0];
+                    
+                    if (response.last_message_user == requestUserid) {
+                        var chatMessage = "You: " + response.last_message
+                    } else {
+                        var chatMessage = response.last_message
+                    }
+                    
+                    if (chatLink === null) {
+                        console.log("time to append");
+                        let chatsLog = document.getElementById('id_private_chats_log');
+                        let elementToInsertAfter = chatsLog.children[0];
+                        console.log(elementToInsertAfter);
+                        let linkUrl = "/privatechat/" + response.chat_id + "/chat/";
+                        let newHTML = `<a href="${linkUrl} class="private-chat-link" id="private_chat_link_${response.chat_id}"><div class="private-chats-room-message-container"><div class="private-chats-room-picture-container">
+                            <img class="private-chats-room-pic" src="${response.chat_image}" alt="chat room ${response.chat_id}'s profile image"></div>
+                            <div class="private-chats-room-body-container"><div class="private-chats-room-headers-container"><span class="private-chats-room-members" id="id_room_members_${response.chat_id}">
+                            ${response.chat_name}</span><span class="private-chats-room-last-date-sent" id="id_room_last_sent_${response.chat_id}">${timestampFormattedAsDate}</span>
+                            </div><div class="private-chats-room-message-text-container"><span class="private-chats-room-last-message" id="id_room_last_message_${response.chat_id}">
+                            ${chatMessage}</span></div></div></div></a>`
+                        elementToInsertAfter.insertAdjacentHTML('afterend', newHTML);
+                    }
+                    // if chatLink variable exists, simply update the corresponding chat window
+                    else if (chatLink !== null) {
+                        console.log("Found!");
+                        let chatName = document.getElementById('id_room_members_' + response.chat_id);
+                        chatName.textContent = response.chat_name;
+                        console.log(response.chat_name);
+                        let chatLastDate = document.getElementById('id_room_last_sent_' + response.chat_id);
+                        chatLastDate.textContent = timestampFormattedAsDate;
+                        chatLastDate.style.color = "cyan";
+                        chatLastDate.style.fontWeight = "bold";
+                        let chatLastMessage = document.getElementById('id_room_last_message_' + response.chat_id);
+                        chatLastMessage.textContent = chatMessage;
+                        chatsLog.removeChild(chatLink);
+                        chatsLog.insertBefore(chatLink, elementToInsertAfter.nextSibling);
+                    }
+                }
+            });
+        }
+    }
+
+</script>
+
+{% endblock %}

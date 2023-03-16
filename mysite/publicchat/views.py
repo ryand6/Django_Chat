@@ -17,6 +17,15 @@ class PublicChatView(View):
         username = request.user.username
         try:
             chatroom = PublicChat.objects.all().first()
+            # if database is empty/reset and no one has been added to the public chatroom users list - add the
+            # superuser to the users list so that when new users register (the point where users are added to public chatroom)
+            # it won't throw an exception as the instance of the chatroom has been initialised and has atleast 1x user
+            # note, might need to change db model to accept the users list as null, otherwise necessary step to create a superuser
+            # and have them click on the public chatroom before any new users register
+            if not chatroom.users.all():
+                accounts = Account.objects.all()
+                for account in accounts:
+                    chatroom.users.add(account)
             chat_users = chatroom.users.all()
             print(chat_users)
 
@@ -44,3 +53,4 @@ def get_previous_messages(request):
             message_data = {'id': message.id, 'userid': message.user.id, 'message': message.message, 'timestamp': message.created_at.isoformat(), 'username': message.user.username, 'profile_pic': message.user.profile_image.url}
             response_data['messages'].append(message_data)
         return JsonResponse(response_data)
+    

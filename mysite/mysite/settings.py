@@ -24,6 +24,8 @@ APP_NAME = 'Chat DJ4E'
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = ''
 
+SALT_KEY = ''
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -40,6 +42,7 @@ INSTALLED_APPS = [
     'friends.apps.FriendsConfig',
     'publicchat.apps.PublicchatConfig',
     'privatechat.apps.PrivatechatConfig',
+    'notifications.apps.NotificationsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,6 +54,7 @@ INSTALLED_APPS = [
     # Extensions - installed with pip3 / requirements.txt
     'django_extensions',
     'crispy_forms',
+    'emoji_picker',
     'rest_framework',
     'social_django',
     'taggit',

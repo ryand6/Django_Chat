@@ -10,11 +10,14 @@ https://docs.djangoproject.com/en/4.0/howto/deployment/asgi/
 import os
 import django
 
+from django.urls import re_path, path
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
-import publicchat.routing
+from publicchat.consumers import PublicChatRoomConsumer
+from privatechat.consumers import PrivateChatRoomConsumer, AllPrivateChatRoomsConsumer
+from notifications.consumers import NotificationConsumer
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
 
@@ -25,9 +28,12 @@ application = ProtocolTypeRouter({
     "http": django_asgi_app,
     "websocket": AllowedHostsOriginValidator(
             AuthMiddlewareStack(
-                URLRouter(
-                    publicchat.routing.websocket_urlpatterns
-            )
+                URLRouter([
+                    path('ws/notifications/<int:user_id>/', NotificationConsumer.as_asgi()),
+                    path('ws/public_chat/', PublicChatRoomConsumer.as_asgi()),
+                    path('ws/private_chat/<int:room_id>/', PrivateChatRoomConsumer.as_asgi()),
+                    path('ws/all_private_chats/<int:user_id>/', AllPrivateChatRoomsConsumer.as_asgi()),
+            ])
         )
     ),
 })

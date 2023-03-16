@@ -1,12 +1,7 @@
 from django.contrib import admin
 from django.core.paginator import Paginator
 from django.core.cache import cache
-from privatechat.models import PrivateChat, PrivateMessages
-
-
-class PrivateChatAdmin(admin.ModelAdmin):
-    list_display = ['id', 'title']
-    search_fields = ['id', 'title']
+from notifications.models import Notifications
 
 
 # Source: http://masnun.rocks/2017/03/20/django-admin-expensive-count-all-queries/
@@ -32,11 +27,11 @@ class CachingPaginator(Paginator):
     count = property(_get_count)
 
 
-class PrivateMessagesAdmin(admin.ModelAdmin):
-    list_filter = ['room', 'user', 'created_at']
-    list_display = ['room', 'user', 'created_at', 'message']
-    search_fields = ['room__title', 'user__username']
-    readonly_fields = ['id', 'user', 'room', 'created_at']
+class NotificationsAdmin(admin.ModelAdmin):
+    list_filter = ['recipient', 'sender', 'read', 'timestamp']
+    list_display = ['recipient', 'sender', 'message', 'timestamp', 'read']
+    search_fields = ['recipient__username', 'sender__username']
+    readonly_fields = ['id', 'recipient', 'sender', 'link_id', 'timestamp']
 
     # prevent duplicated SELECT COUNT(*) query being run (expensive query on large datasets)
     show_full_result_count = False
@@ -44,5 +39,4 @@ class PrivateMessagesAdmin(admin.ModelAdmin):
     paginator = CachingPaginator
 
 
-admin.site.register(PrivateChat, PrivateChatAdmin)
-admin.site.register(PrivateMessages, PrivateMessagesAdmin)
+admin.site.register(Notifications, NotificationsAdmin)

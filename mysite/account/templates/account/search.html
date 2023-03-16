@@ -64,8 +64,8 @@
                             {% if account.1 == "1" %}
                             <div class="d-flex flex-row friend-text-container justify-content-end p-2">
                                 <p class="message-account">
-                                    <!--add JavaScript onclick function to handle sending private message-->
-                                    <a class="btn btn-primary mr-2" href="#">
+                                    <a class="btn btn-primary mr-2 send-friend-private-message" data-friend-id="{{ account.0.id }}" data-request-url="{% url 'privatechat:create_chat' %}"
+                                    onclick='sendFriendMessage(this);'>
                                         <span class="material-symbols-outlined">sms</span>
                                         <span class="message-btn-text m-auto pl-2">Message</span>
                                     </a>
@@ -105,5 +105,6 @@
 
 {% include 'scripts/send_friend_request.html' %}
 {% include 'scripts/cancel_friend_request.html' %}
+{% include 'chat_scripts/send_message.html' %}
 
 {% endblock content %}

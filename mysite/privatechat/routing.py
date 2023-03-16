@@ -3,5 +3,5 @@
 
 
 # websocket_urlpatterns = [
-#     path('ws/public_chat/', consumers.PublicChatRoomConsumer.as_asgi()),
+#     path('ws/private_chat/<int:chat_id>/', consumers.PrivateChatRoomConsumer.as_asgi()),
 # ]

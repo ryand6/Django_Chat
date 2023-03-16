@@ -101,6 +101,12 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
         timestamp = event['timestamp']
         username_hidden = event['username_hidden']
 
+        if message[0] and message[-1] == "`":
+            code_snippet = True
+            message = message.strip('`')
+        else:
+            code_snippet = False
+
         # sends message to WebSocket where javascript function then appends it to the chat log, thus
         # message is shown on all users inside the room group's browsers
         await self.send(text_data=json.dumps({
@@ -108,7 +114,8 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
                 'username': username,
                 'profile_pic': profile_pic,
                 'timestamp': timestamp,
-                'username_hidden': username_hidden
+                'username_hidden': username_hidden,
+                'code_snippet': code_snippet
             }))
         
 

@@ -87,6 +87,82 @@
         align-items: center;
     }
 
+    .notification-pic{
+        border: 1px;
+        border-color: black;
+        display: block;
+        border-radius: 50%;
+        height: 30px;
+        width: 30px;
+        background-color: white;
+        margin-left: 1em;
+    }
+
+    .notification-message-container{
+        display: flex;
+        flex-direction: row;
+        background-color: white;
+        padding: 0.5em;
+        border-radius: 10px;
+        max-width: 200px;
+        height: 50px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    .notification-picture-container{
+        display: flex;
+        flex-direction: column;
+        height: 35px;
+        min-width: 35px;
+        margin-right: 1em;
+    }
+
+    .notification-body-container{
+        width: 80%;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .notification-headers-container{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .notification-text-container{
+        display: flex;
+        flex-direction: row;
+        flex-grow: 1;
+    }
+
+    .notification-sender{
+        display: flex;
+        font-size: 10pt;
+        font-weight: bold;
+        color: purple;
+    }
+
+    .notification-message{
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        font-size: 8pt;
+        color: black;
+        width: 75%;
+    }
+
+    .notification-link{
+        text-decoration: none !important;
+    }
+    
+    .notification-timestamp{
+        margin-left: auto;
+        text-decoration: none !important;
+        font-size: 6pt;
+        color: black;
+    }
+
 </style>
 <nav class="navbar navbar-default navbar-inverse shadow-sm">
     <div class="container-fluid">
@@ -95,15 +171,15 @@
                 <a class="navbar-brand" href="/">{{ settings.APP_NAME }}</a>
             </div>
             <div class="d-flex flex-row" id="id_navbar_left-2">
-                <div class="flex-item-1 mr-2">
+                <div class="flex-item-1 ml-5 mr-2">
                     <a href="{% url 'publicchat:all' %}">Public Chatroom</a>
-                    <span id="id_public_chat_notifications_count" class="notify-badge"></span>
-                    <span class="material-symbols-outlined" id="id_chat_notifications_icon">chat</span>
                 </div>
                 <div class="flex-item-1 mr-2">
-                    <a href="{% url 'privatechat:all' %}">Other Chats</a>
-                    <span id="id_public_chat_notifications_count" class="notify-badge"></span>
-                    <span class="material-symbols-outlined" id="id_chat_notifications_icon">chat</span>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'privatechat:all' request.user.id %}">Other Chats</a>
+                    {% else %}
+                    <a href="{% url 'login' %}">Other Chats</a>
+                    {% endif %}
                 </div>
                 <div class="flex-item-2">
                     <form class="search-bar pl-4" onsubmit="return runSearch();">
@@ -113,7 +189,7 @@
             </div>
         </div>
         {% if user.is_authenticated %}
-        <div class="nav">
+        <div class="nav" id="id_navbar_right">
             <div class="dropdown dropleft show p-2">
                 <div class="d-flex flex-row">
                     <!--friend notifications-->
@@ -121,7 +197,7 @@
                         <div class="d-flex notifications-icon-container rounded-circle align-items-center mr-3" id="id_friend_notifications_toggle"
                         data-toggle="dropdown">
                             <span id="id_friend_notifications_count" class="notify-badge"></span>
-                            <span class="material-symbols-outlined" id="id_friend_requests_icon">group_add</span>
+                            <span class="material-symbols-outlined" id="id_notifications_bell">notifications</span>
                             <div class="dropdown-menu scrollable-menu" style="right: 0; left: auto;" aria-labelledby="id_friend_notifications_toggle" id="id_friend_notifications_dropdown"></div>
                         </div>
                     </div>
@@ -138,7 +214,7 @@
             </div>
         </div>
         {% else %}
-        <div class="nav">
+        <div class="nav" id="id_navbar_right">
             <div class="navbar-right">
                 <ul class="navbar-nav ml-auto">
                     <li>
@@ -154,6 +230,8 @@
     </div>
 </nav>
 
+
+
 <script type="text/javascript">
     function runSearch(){
         var query = document.getElementById("id_search_bar").value;
@@ -162,6 +240,73 @@
         return false;
     }
 </script>
+
+<script type="text/javascript">
+
+    // for handling iso format date conversions
+    const options = {day: 'numeric', month: 'long', year: 'numeric'};
+    const formatter = new Intl.DateTimeFormat('en-GB', options);
+
+    const isAuthenticated = "{{ user.is_authenticated }}";
+    var userId = "{{ user.id }}";
+
+    if (isAuthenticated === "True") {
+
+        const notificationSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/notifications/' + userId + '/'
+        );
+
+        notificationSocket.onmessage = function(e) {
+            var data = JSON.parse(e.data);
+            console.log("NOTIFICATION!")
+            console.log(data);
+
+
+            if (data.type == "message_notification") {
+                let timestampAsObj = new Date(data.timestamp);
+                let timestampFormattedAsDate = formatter.format(timestampAsObj);
+
+                var newNotification = document.createElement('a');
+                newNotification.setAttribute("href", `/privatechat/${data.room_id}/chat/`);
+                newNotification.classList.add('notification-link');
+                newNotification.setAttribute("id", `notification_link_${data.notification_id}`)
+                newNotification.innerHTML = `<div class="notification-message-container"><div class="notification-picture-container">
+                        <img class="notification-pic" src="${data.profile_pic}" alt="notification sender ${data.sender}'s profile image"></div>
+                        <div class="notification-body-container"><div class="notification-headers-container"><span class="notification-sender" id="id_notification_sender_username_${data.notification_id}">
+                        ${data.sender}</span><span class="notification-timestamp" id="id_notification_timestamp_${data.notification_id}">${timestampFormattedAsDate}</span>
+                        </div><div class="notification-text-container"><span class="notification-message" id="id_notification_message_${data.notification_id}">
+                        ${data.message}</span></div></div></div>`
+                
+                showPopupNotification(newNotification, 5000);
+            }
+
+
+            notificationSocket.onclose = function(e) {
+                console.error('Chat socket closed unexpectedly');
+            };
+
+            notificationSocket.onerror = function(e) {
+                // Handle websocket errors
+                console.error('Websocket error', event);
+            };
+        }
+    }
+    else {
+        console.log("NOT AUTHENTICATED!");
+    }
+
+
+    function showPopupNotification(element, duration) {
+        let navBarRight = document.getElementById('id_navbar_right');
+        navBarRight.insertBefore(element, navBarRight.firstChild);
+
+        setTimeout(function() {
+            navBarRight.removeChild(element);
+        }, duration);
+    }
+
+</script>
+
 {% endblock navbar %}
 {% block footer %}
     {% include 'base/footer.html' %}
