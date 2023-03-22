@@ -210,14 +210,14 @@ class AllPrivateChatRoomsConsumer(AsyncWebsocketConsumer):
     def remove_consumer_instance(self):
         del AllPrivateChatRoomsConsumer.consumers[self.user_id]
 
-        async def disconnect(self, close_code):
-            # Unsubscribe the user from all chatrooms they're a part of
-            for chatroom in self.chatrooms:
-                room_group_name = f'private_chat_{chatroom.pk}'
-                await self.channel_layer.group_discard(
-                    room_group_name,
-                    self.channel_name
-                )
+    async def disconnect(self, close_code):
+        # Unsubscribe the user from all chatrooms they're a part of
+        for chatroom in self.chatrooms:
+            room_group_name = f'private_chat_{chatroom.pk}'
+            await self.channel_layer.group_discard(
+                room_group_name,
+                self.channel_name
+            )
 
     # receives event from PrivateChatRoomConsumer when message is sent in private chat
     async def chat_message(self, event):    
@@ -249,7 +249,7 @@ class AllPrivateChatRoomsConsumer(AsyncWebsocketConsumer):
     # has to be synchronous the create_chat function in the privatechat views.py
     # adds the users properly 
     def add_user_to_chat_groups(self, id):
-        print("PLEAAASEE")
+        print("Adding user to group")
         print(id)
         room_group_name = f'private_chat_{id}'
         print(room_group_name)

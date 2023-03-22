@@ -48,12 +48,6 @@
                         <input class="d-none" type="file" id="id_profile_image" name="profile_image"
                         onchange="uploadImage(this)">
 
-                        <!--<h6 class="mt-4 field-heading">-->
-                        <!--    Email-->
-                        <!--</h6>-->
-                        <!--<input type="email" name="email" id="id_input_email" class="form-control" placeholder="email@example.com"-->
-                        <!--required autofocus value={{ account_form.initial.email }}>-->
-
                         <h6 class="mt-4 field-heading">
                             Username
                         </h6>
@@ -76,7 +70,7 @@
                         </h6>
                         <input type="text" name="tags" id="id_tags" class="form-control" data-role="tagsinput"
                         value={{ info_form.initial.tags }}>
-                        <p style="font-size: 10px;">Comma delimited list of tags</p>
+                        <p style="font-size: 10px;">Comma delimited list of tags - use double quotes to surround an interest that contains spaces i.e. python, css, "software engineering", html</p>
 
                         {% for field in account_form %}
                         <p>
@@ -170,14 +164,6 @@
                         cropY = event.detail.y;
                         cropWidth = event.detail.width;
                         cropHeight = event.detail.height;
-
-                        // setCropProperties(
-                        //     image,
-                        //     event.detail.x,
-                        //     event.detail.y,
-                        //     event.detail.width,
-                        //     event.detail.height
-                        // )
                     }
                 })
             }
@@ -186,14 +172,6 @@
             reader.readAsDataURL(input.files[0]);
         }
     }
-
-    // function setCropProperties(image, x, y, width, height){
-    //     imageFile = image;
-    //     cropX = x;
-    //     cropY = y;
-    //     cropWidth = width;
-    //     cropHeight = height;
-    // }
 
     function isImageSizeValid(image){
         // gets the index of the encoded image string after "base64," - plus 7 is due to length of "base64,"

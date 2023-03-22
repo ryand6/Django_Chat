@@ -8,4 +8,5 @@ urlpatterns = [
     path('update_chat_log/', views.update_chat_log, name='update_chat_log'),
     path('create_chat/', views.create_chat, name='create_chat'),
     path('get_previous_messages_private/', views.get_previous_messages_private, name='get_previous_messages_private'),
+    path('update_chatroom_unread_messages/', views.update_chatroom_unread_messages, name="update_chatroom_unread_messages"),
 ]

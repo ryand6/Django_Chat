@@ -48,15 +48,6 @@ class AccountUpdateForm(forms.ModelForm):
         model = Account
         fields = ('username',)
 
-    # def clean_email(self):
-    #     email = self.cleaned_data['email'].lower()
-    #     try:
-    #         account = Account.objects.get(email=email)
-    #     except Account.DoesNotExist:
-    #         return email
-    #     else:
-    #         raise forms.ValidationError(f'Account under email address {email} already exists')
-
     def clean_username(self):
         username = self.cleaned_data['username']
         try:
@@ -74,7 +65,6 @@ class AccountUpdateForm(forms.ModelForm):
     def save(self, commit=True):
         account = super(AccountUpdateForm, self).save(commit=False)
         account.username = self.cleaned_data['username']
-        # account.email = self.cleaned_data['email']
         # account.profile_image = self.cleaned_data['profile_image']
         if commit:
             account.save()
@@ -91,6 +81,7 @@ class AccountInfoUpdateForm(forms.ModelForm):
             info = super(AccountInfoUpdateForm, self).save(commit=False)
             if commit:
                 info.save()
+                # required to save tags
                 self.save_m2m()
             return info
 

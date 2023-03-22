@@ -254,7 +254,7 @@
             {% endfor %}
         </div>
         <div class="d-flex flex-row p-2" id="id_message_bar">
-            <textarea class="mx-2" id="chat_message_input"></textarea>
+            <input class="mx-2" id="chat_message_input"></input>
             <input id="chat_message_submit" type="button" value="Send">
         </div>
     </div>
@@ -288,11 +288,13 @@
 {{ username|json_script:"username" }}
 {{ userid|json_script:"userid" }}
 
+<script type="text/javascript">
+    var chatLog = document.getElementById('chat_log');
+</script>
+
 {% include 'chat_scripts/chat_log_adjustments.html' %}
 
 <script type="text/javascript">
-
-    const chatLog = document.getElementById('chat_log');    
     try {
         var lastLoadedMessageId = JSON.parse(document.getElementById('lastSentMessageId').textContent);
     } catch (error) {
@@ -302,10 +304,6 @@
     var requestUsername = JSON.parse(document.getElementById('username').textContent);
     var requestUserid = JSON.parse(document.getElementById('userid').textContent);
     var allMessagesLoaded = false;
-
-    // for handling iso format date conversions
-    const options = {day: 'numeric', month: 'long', year: 'numeric'};
-    const formatter = new Intl.DateTimeFormat('en-GB', options);
 
     // checks chat log to see if any date separators are present and converts the last date in these list of
     // objects (if present) into the formnat "dd/mm/yyyy" so that it can be compared with current date messages
@@ -484,6 +482,7 @@
 
     chatSocket.onclose = function(e) {
             console.error('Chat socket closed unexpectedly');
+            console.log(e);
         };
 
     document.querySelector('#chat_message_input').focus();

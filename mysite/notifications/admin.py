@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.core.paginator import Paginator
 from django.core.cache import cache
-from notifications.models import Notifications
+from notifications.models import MessageNotifications, FriendNotifications
 
 
 # Source: http://masnun.rocks/2017/03/20/django-admin-expensive-count-all-queries/
@@ -27,11 +27,11 @@ class CachingPaginator(Paginator):
     count = property(_get_count)
 
 
-class NotificationsAdmin(admin.ModelAdmin):
-    list_filter = ['recipient', 'sender', 'read', 'timestamp']
-    list_display = ['recipient', 'sender', 'message', 'timestamp', 'read']
-    search_fields = ['recipient__username', 'sender__username']
-    readonly_fields = ['id', 'recipient', 'sender', 'link_id', 'timestamp']
+class MessageNotificationsAdmin(admin.ModelAdmin):
+    list_filter = ['recipient', 'sender', 'read', 'room', 'timestamp']
+    list_display = ['recipient', 'sender', 'room', 'message', 'timestamp', 'read']
+    search_fields = ['recipient__username', 'sender__username', 'room__title']
+    readonly_fields = ['id', 'recipient', 'sender', 'room', 'timestamp']
 
     # prevent duplicated SELECT COUNT(*) query being run (expensive query on large datasets)
     show_full_result_count = False
@@ -39,4 +39,17 @@ class NotificationsAdmin(admin.ModelAdmin):
     paginator = CachingPaginator
 
 
-admin.site.register(Notifications, NotificationsAdmin)
+class FriendNotificationsAdmin(admin.ModelAdmin):
+    list_filter = ['recipient', 'sender', 'engaged', 'timestamp']
+    list_display = ['recipient', 'sender', 'engaged', 'timestamp', 'received_request', 'accepted_request']
+    search_fields = ['recipient__username', 'sender__username']
+    readonly_fields = ['id', 'recipient', 'sender', 'timestamp']
+
+    # prevent duplicated SELECT COUNT(*) query being run (expensive query on large datasets)
+    show_full_result_count = False
+    # call caching system to retrieve cached results if they exist already
+    paginator = CachingPaginator
+
+
+admin.site.register(MessageNotifications, MessageNotificationsAdmin)
+admin.site.register(FriendNotifications, FriendNotificationsAdmin)

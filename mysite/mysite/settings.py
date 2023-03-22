@@ -22,9 +22,9 @@ APP_NAME = 'Chat DJ4E'
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ''
+SECRET_KEY = 'g$iqqu&*mw4_sg3(#ld0sqaalxebel&168^yj%i&sgrw(fmn@w'
 
-SALT_KEY = ''
+SALT_KEY = 'ioeyf7jbrud*ihdfvgehf@3fbUijehquigewcvIHuihgdoiuI^OHUGY'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -91,6 +91,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'home.context_processors.settings',
+                'notifications.context_processors.unread_message_notifications',
+                'notifications.context_processors.get_active_friend_notifications',
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
             ],
@@ -103,9 +105,9 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 ASGI_APPLICATION = 'mysite.asgi.application'
 
 
-DB_NAME = ""
-DB_USER = ""
-DB_PASSWORD = ""
+DB_NAME = "chatdj4e"
+DB_USER = "django"
+DB_PASSWORD = "password"
 
 DATABASES = {
     'default': {
@@ -251,10 +253,10 @@ SESSION_COOKIE_AGE = 86400 * 7
 #SMTP Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_USER = 'chatdj4e@gmail.com'
+EMAIL_HOST_PASSWORD = 'mxuvvzfkqmjbozpf'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = ''
+DEFAULT_FROM_EMAIL = 'team Chat DJ4E <noreply@chatdj4e.com>'
 
 MAX_DATA_UPLOAD = 10 * 1024 * 1024

@@ -30,8 +30,8 @@
 
     #id_private_chats_log{
         background-color: grey;
-        padding-left: 2em;
-        padding-right: 2em;
+        padding-left: 1.5em;
+        padding-right: 1.5em;
         overflow-x: hidden;
         overflow-y: visible;
         height: 100%;
@@ -117,6 +117,7 @@
         display: flex;
         flex-direction: column;
         flex-grow: 1;
+        overflow: hidden;
     }
 
     .chatroom-message-headers-container{
@@ -129,6 +130,7 @@
         display: flex;
         flex-direction: row;
         align-items: center;
+        overflow: hidden;
     }
 
     .chatroom-message-text-container{
@@ -233,7 +235,7 @@
         margin-right: 10px;
         text-decoration: none !important;
         color: white;
-        font-size: 10pt;
+        font-size: 8pt;
         overflow: hidden;
     }
 
@@ -247,6 +249,11 @@
 
     .user-profile-link-image{
         text-decoration: none !important;
+    }
+
+    .private-message-notification-count{
+        margin-left: auto;
+        margin-right: 1em;
     }
 
 </style>
@@ -285,11 +292,15 @@
                                             {% endfor %}
                                         {% endif %}
                                     </span>
+                                    {% if chat.unread_count > 0 %}
+                                    <span class="private-chats-room-last-date-sent" style="color: cyan; font-weight: bold;" id="id_room_last_sent_{{ chat.id }}">
+                                    {% else %}
                                     <span class="private-chats-room-last-date-sent" id="id_room_last_sent_{{ chat.id }}">
+                                    {% endif %}
                                         {{ chat.last_date|date:"j F Y" }}
                                     </span>
                                 </div>
-                                <div class="private-chats-room-message-text-container">
+                                <div class="private-chats-room-message-text-container" id="id_room_text_container_{{ chat.id }}">
                                     <span class="private-chats-room-last-message" id="id_room_last_message_{{ chat.id }}">
                                         {% if chat.last_user == userid %}
                                             You: {{ chat.last_message }}
@@ -297,6 +308,11 @@
                                             {{ chat.last_message }}
                                         {% endif %}
                                     </span>
+                                    {% if chat.unread_count > 0 %}
+                                    <span class="badge badge-pill badge-primary private-message-notification-count" id="id_room_message_notification_count_{{ chat.id }}">
+                                        {{ chat.unread_count }}
+                                    </span>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -367,7 +383,7 @@
             {% endfor %}
         </div>
         <div class="d-flex flex-row p-2" id="id_message_bar">
-            <textarea class="mx-2" id="chat_message_input"></textarea>
+            <input class="mx-2" id="chat_message_input"></input>
             <input id="chat_message_submit" type="button" value="Send">
         </div>
     </div>
@@ -381,11 +397,13 @@
 
 <script type="text/javascript">
 
-    var requestUserid = JSON.parse(document.getElementById('userid').textContent);
+    var isNewMessageReceivedCurrentChat = false;
 
-    // for handling iso format date conversions
-    const options = {day: 'numeric', month: 'long', year: 'numeric'};
-    const formatter = new Intl.DateTimeFormat('en-GB', options);
+    var requestUsername = JSON.parse(document.getElementById('username').textContent);
+    var requestUserid = JSON.parse(document.getElementById('userid').textContent);
+    var requestRoomId = JSON.parse(document.getElementById('roomid').textContent);
+
+    var requestUserid = JSON.parse(document.getElementById('userid').textContent);
 
     const allChatsSocket = new WebSocket(
         'ws://' + window.location.host + '/ws/all_private_chats/' + requestUserid + '/'
@@ -409,6 +427,10 @@
                     console.log("Response: ");
                     console.log(response);
 
+                    if (data.room_id == requestRoomId) {
+                        isNewMessageReceivedCurrentChat = true;
+                    }
+
                     let timestampAsObj = new Date(response.last_date);
                     let timestampFormattedAsDate = formatter.format(timestampAsObj);
                     
@@ -430,13 +452,23 @@
                         let elementToInsertAfter = chatsLog.children[0];
                         console.log(elementToInsertAfter);
                         let linkUrl = "/privatechat/" + response.chat_id + "/chat/";
-                        newHTML = `<a href="${linkUrl} class="private-chat-link" id="private_chat_link_${response.chat_id}"><div class="private-chats-room-message-container"><div class="private-chats-room-picture-container">
+                        newHTML = `<a href="${linkUrl}" class="private-chat-link" id="private_chat_link_${response.chat_id}"><div class="private-chats-room-message-container"><div class="private-chats-room-picture-container">
                             <img class="private-chats-room-pic" src="${response.chat_image}" alt="chat room ${response.chat_id}'s profile image"></div>
                             <div class="private-chats-room-body-container"><div class="private-chats-room-headers-container"><span class="private-chats-room-members" id="id_room_members_${response.chat_id}">
                             ${response.chat_name}</span><span class="private-chats-room-last-date-sent" id="id_room_last_sent_${response.chat_id}">${timestampFormattedAsDate}</span>
-                            </div><div class="private-chats-room-message-text-container"><span class="private-chats-room-last-message" id="id_room_last_message_${response.chat_id}">
-                            ${chatMessage}</span></div></div></div></a>`
+                            </div><div class="private-chats-room-message-text-container" id="id_room_text_container_${response.chat_id}"><span class="private-chats-room-last-message" id="id_room_last_message_${response.chat_id}">
+                            ${chatMessage}</span>`
+                        if (response.unread_count > 0) {
+                            newHTML = newHTML + `<span class="badge badge-pill badge-primary private-message-notification-count" id="id_room_message_notification_count_${response.chat_id}">${response.unread_count}</span></div></div></div></a>`
+                        } else {
+                            newHTML = newHTML + `</div></div></div></a>`
+                        }
                         elementToInsertAfter.insertAdjacentHTML('afterend', newHTML);
+                        if (response.last_message_user != requestUserid) {
+                            let lastDateSentUpdateStyle = document.getElementById('id_room_last_sent_' + response.chat_id);
+                            lastDateSentUpdateStyle.style.color = "cyan";
+                            lastDateSentUpdateStyle.style.fontWeight = "bold";
+                        }
                     }
                     // if chatLink variable exists, simply update the corresponding chat window
                     else if (chatLink !== null) {
@@ -446,10 +478,29 @@
                         console.log(response.chat_name);
                         let chatLastDate = document.getElementById('id_room_last_sent_' + response.chat_id);
                         chatLastDate.textContent = timestampFormattedAsDate;
-                        chatLastDate.style.color = "cyan";
-                        chatLastDate.style.fontWeight = "bold";
+                        if (response.last_message_user != requestUserid) {
+                            chatLastDate.style.color = "cyan";
+                            chatLastDate.style.fontWeight = "bold";
+                        } else {
+                            chatLastDate.style.color = "white";
+                        }
                         let chatLastMessage = document.getElementById('id_room_last_message_' + response.chat_id);
                         chatLastMessage.textContent = chatMessage;
+                        if (response.unread_count > 0) {
+                            let chatTextContainer = document.getElementById('id_room_text_container_' + response.chat_id);
+                            let oldNotificationSpan = document.getElementById('id_room_message_notification_count_' + response.chat_id);
+                            if (oldNotificationSpan !== null) {
+                                chatTextContainer.removeChild(oldNotificationSpan);
+                            }
+                            let notificationsSpan = document.createElement('span');
+                            notificationsSpan.classList.add('badge');
+                            notificationsSpan.classList.add('badge-pill');
+                            notificationsSpan.classList.add('badge-primary');
+                            notificationsSpan.classList.add('private-message-notification-count');
+                            notificationsSpan.setAttribute("id", 'id_room_message_notification_count_' + response.chat_id);
+                            notificationsSpan.textContent = response.unread_count;
+                            chatTextContainer.appendChild(notificationsSpan);
+                        }
                         chatsLog.removeChild(chatLink);
                         chatsLog.insertBefore(chatLink, elementToInsertAfter.nextSibling);
                     }
@@ -462,17 +513,16 @@
 
 <script type="text/javascript">
 
-    const chatLog = document.getElementById('chat_log');
+    var chatLog = document.getElementById('chat_log');
     try {
         var lastLoadedMessageId = JSON.parse(document.getElementById('lastSentMessageId').textContent);
     } catch (error) {
         console.log('No messages sent in chat so far');
     }
     
-    var requestUsername = JSON.parse(document.getElementById('username').textContent);
-    var requestUserid = JSON.parse(document.getElementById('userid').textContent);
-    var requestRoomId = JSON.parse(document.getElementById('roomid').textContent);
     var allMessagesLoaded = false;
+
+    var token = "{{ csrf_token }}";
 
     // checks chat log to see if any date separators are present and converts the last date in these list of
     // objects (if present) into the formnat "dd/mm/yyyy" so that it can be compared with current date messages
@@ -664,18 +714,72 @@
         }
     };
 
+    // send message
     document.querySelector('#chat_message_submit').onclick = function(e) {
-            const messageInputDom = document.querySelector('#chat_message_input');
-            const message = messageInputDom.value;
-            chatSocket.send(JSON.stringify({
-                'message': message
-            }));
-            // clears input element text - can't clear text just by setting elements value to empty
-            // string when using emoji picker
-            var emojioneAreas = $("#chat_message_input").emojioneArea(); 
-            emojioneAreas.data("emojioneArea").setText('');
-        };
+        const messageInputDom = document.querySelector('#chat_message_input');
+        const message = messageInputDom.value;
+        chatSocket.send(JSON.stringify({
+            'message': message
+        }));
+        // clears input element text - can't clear text just by setting elements value to empty
+        // string when using emoji picker
+        var emojioneAreas = $("#chat_message_input").emojioneArea(); 
+        emojioneAreas.data("emojioneArea").setText('');
+    };
 
+    // remove unread message notifications from private chat window when a user is in the private chat
+    // already when the message is received and the user clicks on the input bar - updates without having
+    // to refresh page
+    document.querySelector('#id_message_bar').onclick = function(e) {
+        console.log("message bar clicked");
+
+        // only allow AJAX requests to be made if a new message has been received to current private chat window
+        if (isNewMessageReceivedCurrentChat == true){
+            isNewMessageReceivedCurrentChat = false;
+            $.ajax({
+                    type: 'POST',
+                    url: '/privatechat/update_chatroom_unread_messages/',
+                    dataType: 'json',
+                    data: {"room_id": requestRoomId, "recipient_id": requestUserid, "csrfmiddlewaretoken": token},
+                    success: function(data) {
+                        if (data.response == "success") {
+                            console.log("Successfully update chatroom " + requestRoomId + "'s unread messages");
+                            let lastDateSentUpdateStyle = document.getElementById('id_room_last_sent_' + requestRoomId);
+                            lastDateSentUpdateStyle.style.color = "white";
+                            lastDateSentUpdateStyle.style.fontWeight = "normal";
+                            let chatTextContainer = document.getElementById('id_room_text_container_' + requestRoomId);
+                            let notificationSpan = document.getElementById('id_room_message_notification_count_' + requestRoomId);
+                            if (notificationSpan !== null) {
+                                    chatTextContainer.removeChild(notificationSpan);
+                                }
+
+                            $.ajax({
+                                type: "GET",
+                                url: '/notifications/update_notifications/',
+                                success: function (data) {
+                                    var unreadNotifications = data.unread_notifications;
+                                    console.log("Update notifs in header");
+                                    console.log(unreadNotifications);
+                                    let messageNotificationCount = document.querySelector('.message-notification-count');
+                                    if (messageNotificationCount !== null) {
+                                        if (unreadNotifications > 0) {
+                                        messageNotificationCount.textContent = unreadNotifications;
+                                        } else {
+                                            otherChatsDiv.removeChild(messageNotificationCount);
+                                        }
+                                    }
+                                }
+                            });
+
+                        } else if (data.response !== null) {
+                            console.log(data.response)
+                        } else{
+                            console.log("Something went wrong whilst updating chatrrom " + requestRoomId + "'s unread messages");
+                        }
+                    }
+            });
+        }
+    }
 
     chatLog.addEventListener('scroll', function() {
         // used to retrieve previous 40 messages when scrolling up until all previous messages have been retrieved

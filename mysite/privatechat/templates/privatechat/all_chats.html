@@ -60,12 +60,14 @@
         display: flex;
         flex-direction: column;
         flex-grow: 1;
+        overflow: hidden;
     }
 
     .private-chats-room-headers-container{
         display: flex;
         flex-direction: row;
         align-items: center;
+        overflow: hidden;
     }
 
     .private-chats-room-message-text-container{
@@ -127,6 +129,11 @@
         color: white;
     }
 
+    .private-message-notification-count{
+        margin-left: auto;
+        margin-right: 1em;
+    }
+
 </style>
 
 <div class="container d-flex flex-row mt-4 justify-content-center" id="id_chat_log_container">
@@ -163,11 +170,15 @@
                                             {% endfor %}
                                         {% endif %}
                                     </span>
+                                    {% if chat.unread_count > 0 %}
+                                    <span class="private-chats-room-last-date-sent" style="color: cyan; font-weight: bold;" id="id_room_last_sent_{{ chat.id }}">
+                                    {% else %}
                                     <span class="private-chats-room-last-date-sent" id="id_room_last_sent_{{ chat.id }}">
+                                    {% endif %}
                                         {{ chat.last_date|date:"j F Y" }}
                                     </span>
                                 </div>
-                                <div class="private-chats-room-message-text-container">
+                                <div class="private-chats-room-message-text-container" id="id_room_text_container_{{ chat.id }}">
                                     <span class="private-chats-room-last-message" id="id_room_last_message_{{ chat.id }}">
                                         {% if chat.last_user == userid %}
                                             You: {{ chat.last_message }}
@@ -175,6 +186,11 @@
                                             {{ chat.last_message }}
                                         {% endif %}
                                     </span>
+                                    {% if chat.unread_count > 0 %}
+                                    <span class="badge badge-pill badge-primary private-message-notification-count" id="id_room_message_notification_count_{{ chat.id }}">
+                                        {{ chat.unread_count }}
+                                    </span>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -190,10 +206,6 @@
 <script type="text/javascript">
 
     var requestUserid = JSON.parse(document.getElementById('userid').textContent);
-
-    // for handling iso format date conversions
-    const options = {day: 'numeric', month: 'long', year: 'numeric'};
-    const formatter = new Intl.DateTimeFormat('en-GB', options);
 
     const chatSocket = new WebSocket(
         'ws://' + window.location.host + '/ws/all_private_chats/' + requestUserid + '/'
@@ -242,9 +254,19 @@
                             <img class="private-chats-room-pic" src="${response.chat_image}" alt="chat room ${response.chat_id}'s profile image"></div>
                             <div class="private-chats-room-body-container"><div class="private-chats-room-headers-container"><span class="private-chats-room-members" id="id_room_members_${response.chat_id}">
                             ${response.chat_name}</span><span class="private-chats-room-last-date-sent" id="id_room_last_sent_${response.chat_id}">${timestampFormattedAsDate}</span>
-                            </div><div class="private-chats-room-message-text-container"><span class="private-chats-room-last-message" id="id_room_last_message_${response.chat_id}">
-                            ${chatMessage}</span></div></div></div></a>`
+                            </div><div class="private-chats-room-message-text-container" id="id_room_text_container_${response.chat_id}"><span class="private-chats-room-last-message" id="id_room_last_message_${response.chat_id}">
+                            ${chatMessage}</span>`
+                        if (response.unread_count > 0) {
+                            newHTML = newHTML + `<span class="badge badge-pill badge-primary private-message-notification-count" id="id_room_message_notification_count_${response.chat_id}">${response.unread_count}</span></div></div></div></a>`
+                        } else {
+                            newHTML = newHTML + `</div></div></div></a>`
+                        }
                         elementToInsertAfter.insertAdjacentHTML('afterend', newHTML);
+                        if (response.last_message_user != requestUserid) {
+                            let lastDateSentUpdateStyle = document.getElementById('id_room_last_sent_' + response.chat_id);
+                            lastDateSentUpdateStyle.style.color = "cyan";
+                            lastDateSentUpdateStyle.style.fontWeight = "bold";
+                        }
                     }
                     // if chatLink variable exists, simply update the corresponding chat window
                     else if (chatLink !== null) {
@@ -254,10 +276,29 @@
                         console.log(response.chat_name);
                         let chatLastDate = document.getElementById('id_room_last_sent_' + response.chat_id);
                         chatLastDate.textContent = timestampFormattedAsDate;
-                        chatLastDate.style.color = "cyan";
-                        chatLastDate.style.fontWeight = "bold";
+                        if (response.last_message_user != requestUserid) {
+                            chatLastDate.style.color = "cyan";
+                            chatLastDate.style.fontWeight = "bold";
+                        } else {
+                            chatLastDate.style.color = "white";
+                        }
                         let chatLastMessage = document.getElementById('id_room_last_message_' + response.chat_id);
                         chatLastMessage.textContent = chatMessage;
+                        if (response.unread_count > 0) {
+                            let chatTextContainer = document.getElementById('id_room_text_container_' + response.chat_id);
+                            let oldNotificationSpan = document.getElementById('id_room_message_notification_count_' + response.chat_id);
+                            if (oldNotificationSpan !== null) {
+                                chatTextContainer.removeChild(oldNotificationSpan);
+                            }
+                            let notificationsSpan = document.createElement('span');
+                            notificationsSpan.classList.add('badge');
+                            notificationsSpan.classList.add('badge-pill');
+                            notificationsSpan.classList.add('badge-primary');
+                            notificationsSpan.classList.add('private-message-notification-count');
+                            notificationsSpan.setAttribute("id", 'id_room_message_notification_count_' + response.chat_id);
+                            notificationsSpan.textContent = response.unread_count;
+                            chatTextContainer.appendChild(notificationsSpan);
+                        }
                         chatsLog.removeChild(chatLink);
                         chatsLog.insertBefore(chatLink, elementToInsertAfter.nextSibling);
                     }

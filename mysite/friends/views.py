@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 
 from account.models import Account
 from friends.models import FriendRequest, FriendList
+from notifications.models import FriendNotifications
 
 
 class FriendListView(View):
@@ -103,14 +104,25 @@ def accept_friend_request(request, *args, **kwargs):
         if received_friend_request_id:
             try:
                 received_friend_request = FriendRequest.objects.get(pk=received_friend_request_id)
+                try:
+                    friend_notification = FriendNotifications.objects.get(friend_request_id=received_friend_request_id)
+                    friend_notification.engaged = True
+                    friend_notification.save()
+                except Exception as e:
+                    print("no friend notification found")
+                    print(e)
                 if received_friend_request.receiver == user:
-                    try:
-                        received_friend_request.accepted()
-                    except Exception as e:
-                        print(str(e))
-                        payload['response'] = "unable to accept request"
+                    # handle if sender has cancelled friend request
+                    if received_friend_request.is_active_request == False:
+                        payload['response'] = "friend request is no longer active"
                     else:
-                        payload['response'] = "success"
+                        try:
+                            received_friend_request.accepted()
+                        except Exception as e:
+                            print(str(e))
+                            payload['response'] = "unable to accept request"
+                        else:
+                            payload['response'] = "success"
                 else:
                     payload['response'] = "error - not your friend request to accept"
             except Exception as e:
@@ -132,14 +144,23 @@ def decline_friend_request(request, *args, **kwargs):
         if received_friend_request_id:
             try:
                 received_friend_request = FriendRequest.objects.get(pk=received_friend_request_id)
+                try:
+                    friend_notification = FriendNotifications.objects.get(friend_request_id=received_friend_request_id)
+                    friend_notification.engaged = True
+                    friend_notification.save()
+                except:
+                    print("no friend notification found")
                 if received_friend_request.receiver == user:
-                    try:
-                        received_friend_request.declined()
-                    except Exception as e:
-                        print(str(e))
-                        payload['response'] = "unable to decline request"
+                    if received_friend_request.is_active_request == False:
+                        payload['response'] = "friend request is no longer active"
                     else:
-                        payload['response'] = "success"
+                        try:
+                            received_friend_request.declined()
+                        except Exception as e:
+                            print(str(e))
+                            payload['response'] = "unable to decline request"
+                        else:
+                            payload['response'] = "success"
                 else:
                     payload['response'] = "error - not your friend request to decline"
             except Exception as e:
