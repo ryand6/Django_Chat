@@ -189,6 +189,9 @@ class EditProfileView(View):
             account_form = AccountUpdateForm(instance=request.user)
             info_form = AccountInfoUpdateForm(instance=info)
 
+            if info_form.initial['name'] is None:
+                info_form.initial['name'] = ""
+
             # show users previously submitted summary so they can choose not to edit
             try:
                 summary = mark_safe(info_form.initial['summary'].replace(' ', '&nbsp;'))

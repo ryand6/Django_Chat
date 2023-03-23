@@ -13,6 +13,14 @@ def update_message_notifications(request):
         return HttpResponse(json.dumps(payload), content_type="application/json")
 
 
+def update_friend_notifications(request):
+    payload = {}
+    if request.method == "GET":
+        if request.user.is_authenticated:
+            payload['unread_friend_notifications'] = FriendNotifications.objects.filter(recipient=request.user, engaged=False).count()
+        return HttpResponse(json.dumps(payload), content_type="application/json")
+
+
 def update_friend_request_accepted_notifications(request):
     payload = {}
     if request.method == "GET":

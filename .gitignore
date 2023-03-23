@@ -1,4 +1,5 @@
 __pycache__
+.env
 *.swp
 *.sqlite3
 github_settings.py

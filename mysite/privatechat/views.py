@@ -1,10 +1,8 @@
 import json
-import time
 
 from django.views import View
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Subquery, OuterRef, Count
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.core.exceptions import PermissionDenied

@@ -5,7 +5,8 @@ from django.conf import settings
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.utils.module_loading import import_string
-from encrypted_fields.fields import EncryptedTextField
+from fernet_fields import EncryptedTextField
+# from encrypted_fields.fields import EncryptedTextField
 
 
 class PrivateChat(models.Model):

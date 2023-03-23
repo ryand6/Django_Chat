@@ -33,8 +33,10 @@ class CachingPaginator(Paginator):
 
 
 class PrivateMessagesAdmin(admin.ModelAdmin):
+    # remove message field from admin site as messages don't remain encrypted on admin site
+    exclude = ('message',)
     list_filter = ['room', 'user', 'created_at']
-    list_display = ['room', 'user', 'created_at', 'message']
+    list_display = ['room', 'user', 'created_at']
     search_fields = ['room__title', 'user__username']
     readonly_fields = ['id', 'user', 'room', 'created_at']
 

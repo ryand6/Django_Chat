@@ -258,8 +258,10 @@
                     <div class="btn-group dropleft">
                         <div class="d-flex notifications-icon-container rounded-circle align-items-center mr-3" id="id_friend_notifications_toggle"
                         data-toggle="dropdown">
-                            <span id="id_friend_notifications_count" class="notify-badge"></span>
-                            <span class="material-symbols-outlined mr-5" id="id_friend_notifications">group_add</span>
+                            <span class="material-symbols-outlined mr-1" id="id_friend_notifications">group_add</span>
+                            {% if friend_notifications_count > 0 %}
+                                <span class="badge badge-pill badge-danger friend-notification-count">{{ friend_notifications_count }}</span>
+                            {% endif %}
                             <div class="dropdown-menu scrollable-menu" style="right: 0; left: auto;" aria-labelledby="id_friend_notifications_toggle" id="id_friend_notifications_dropdown">
                                 {% if active_friend_notifications %}
                                     {% for friend_notification in active_friend_notifications %}
@@ -294,7 +296,7 @@
                         </div>
                     </div>
                     <div class="btn-group dropleft">
-                        <img style="border: 1px solid white; background-color: white;" class="account-image rounded-circle m-auto d-block dropdown-toggle" id="id_profile_options"
+                        <img style="border: 1px solid white; background-color: white;" class="account-image rounded-circle m-auto d-block dropdown-toggle ml-5" id="id_profile_options"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" src="{{ request.user.profile_image.url }}" alt="default user image" height="30" width="30">
                         <div class="dropdown-menu" style="right: 0; left: auto;" aria-labelledby="id_profile_options">
                             <a class="dropdown-item" href="{% url 'account:profile' request.user.id %}">Account</a>
@@ -393,6 +395,7 @@
                             <span class="friend-notification-message">accepted your friend request</span>`
                     friendNotificationDropdown.insertBefore(friendNotificationDiv, friendNotificationDropdown.firstChild);
                 }
+                updateFriendNotifications();
             }
 
             notificationSocket.onclose = function(e) {
@@ -457,18 +460,49 @@
     });
     }
 
+    function updateFriendNotifications() {
+    $.ajax({
+        type: "GET",
+        url: '/notifications/update_friend_notifications/',
+        success: function (data) {
+            var unreadNotifications = data.unread_friend_notifications;
+            var messageNotificationCount = document.querySelector('.friend-notification-count');
+            var friendNotificationDiv = document.getElementById('id_friend_notifications_toggle');
+            if (unreadNotifications > 0) {
+                if (messageNotificationCount !== null) {
+                    messageNotificationCount.textContent = unreadNotifications;
+                } else {
+                    let notificationsSpan = document.createElement('span');
+                    notificationsSpan.classList.add('badge');
+                    notificationsSpan.classList.add('badge-pill');
+                    notificationsSpan.classList.add('badge-danger');
+                    notificationsSpan.classList.add('friend-notification-count');
+                    notificationsSpan.textContent = unreadNotifications;
+                    friendNotificationDiv.appendChild(notificationsSpan);
+                }
+            } else if (unreadNotifications == 0 && messageNotificationCount !== null) {
+                friendNotificationDiv.removeChild(messageNotificationCount);
+            }
+
+        }
+    });
+    }
 
     document.querySelector('#id_friend_notifications').onclick = function(e) {
-        $.ajax({
-                    type: 'GET',
-                    url: '/notifications/update_accepted_friend_request_notifications/',
-                    dataType: 'json',
-                    success: function(data) {
-                        if (data.response == "success") {
-                            console.log("accepted friend request notifications updated")
+        var messageNotificationCount = document.querySelector('.friend-notification-count');
+        if (messageNotificationCount !== null) {
+            $.ajax({
+                        type: 'GET',
+                        url: '/notifications/update_accepted_friend_request_notifications/',
+                        dataType: 'json',
+                        success: function(data) {
+                            if (data.response == "success") {
+                                console.log("accepted friend request notifications updated")
+                                updateFriendNotifications();
+                            }
                         }
-                    }
-        });
+            });
+        }
     }
 
 </script>

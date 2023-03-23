@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,9 +25,14 @@ APP_NAME = 'Chat DJ4E'
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ''
+SECRET_KEY = os.environ.get('SECRET_KEY') 
 
-SALT_KEY = ''
+SALT_KEY = os.environ.get('SALT_KEY') 
+
+FERNET_KEYS = [
+    os.environ.get('FERNET_KEY_1'),
+    os.environ.get('FERNET_KEY_2'),
+]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -104,27 +112,16 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 ASGI_APPLICATION = 'mysite.asgi.application'
 
-
-DB_NAME = ""
-DB_USER = ""
-DB_PASSWORD = ""
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': DB_NAME,
-        'USER': DB_USER,
-        'PASSWORD': DB_PASSWORD,
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
         'HOST': 'localhost',
         'PORT': '5432',
     },
 }
-
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels.layers.InMemoryChannelLayer',
-#         },
-#     }
 
 CHANNEL_LAYERS = {
     "default": {
@@ -253,10 +250,10 @@ SESSION_COOKIE_AGE = 86400 * 7
 #SMTP Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = ''
+DEFAULT_FROM_EMAIL = 'team Chat DJ4E <noreply@chatdj4e.com>'
 
 MAX_DATA_UPLOAD = 10 * 1024 * 1024
