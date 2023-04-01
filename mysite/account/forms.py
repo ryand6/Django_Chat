@@ -1,8 +1,11 @@
+import logging
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate
 
 from account.models import Account, AccountInfo
+from home.views import sanitise_text
 
 
 class RegistrationForm(UserCreationForm):
@@ -28,6 +31,8 @@ class RegistrationForm(UserCreationForm):
 
     def clean_username(self):
         username = self.cleaned_data['username']
+        if sanitise_text(username) != username:
+            raise forms.ValidationError("Username contains profanity")
         # check if an account already exists with the username provided and handle errors accordingly
         try:
             account = Account.objects.get(username=username)
@@ -50,6 +55,9 @@ class AccountUpdateForm(forms.ModelForm):
 
     def clean_username(self):
         username = self.cleaned_data['username']
+        if sanitise_text(username) != username:
+            raise forms.ValidationError("Username contains profanity")
+
         try:
             account = Account.objects.get(username=username)
         except Account.DoesNotExist:
@@ -65,7 +73,6 @@ class AccountUpdateForm(forms.ModelForm):
     def save(self, commit=True):
         account = super(AccountUpdateForm, self).save(commit=False)
         account.username = self.cleaned_data['username']
-        # account.profile_image = self.cleaned_data['profile_image']
         if commit:
             account.save()
         return account
@@ -77,11 +84,39 @@ class AccountInfoUpdateForm(forms.ModelForm):
         model = AccountInfo
         fields = ('name', 'summary', 'tags')
 
-        def save(self, commit=True):
-            info = super(AccountInfoUpdateForm, self).save(commit=False)
-            if commit:
-                info.save()
-                # required to save tags
-                self.save_m2m()
-            return info
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        if name is None:
+            return name
+        print(name)
+        if sanitise_text(name) != name:
+            raise forms.ValidationError("Name contains profanity.")
+        return name
 
+    def clean_summary(self):
+        summary = self.cleaned_data['summary']
+        if summary is None:
+            return summary
+        print(summary)
+        if sanitise_text(summary) != summary:
+            raise forms.ValidationError("Summary contains profanity.")
+        return summary
+
+    def clean_tags(self):
+        tags = self.cleaned_data['tags']
+        if tags is None:
+            return tags
+        print(tags)
+        for tag in tags:
+            if sanitise_text(tag) != tag:
+                raise forms.ValidationError(f"Tag '{tag}' contains profanity.")
+        return tags
+
+    def save(self, commit=True):
+        info = super(AccountInfoUpdateForm, self).save(commit=False)
+
+        if commit:
+            info.save()
+            # required to save tags
+            self.save_m2m()
+        return info

@@ -2,17 +2,14 @@ import os
 import cv2
 import base64
 import json
-import requests
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import login, authenticate
-from django.contrib.sessions.models import Session
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
-from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.core.files.storage import default_storage, FileSystemStorage
 from django.core import files
@@ -82,6 +79,7 @@ class ProfileView(View):
         received_friend_request = False
         sent_friend_request = False
         received_friend_request_id = None
+        sent_friend_request_id = None
         active_friend_requests = None
 
         ctx = {'info': info, 'account': account, 'friends': friends}
@@ -100,6 +98,7 @@ class ProfileView(View):
                 # check is user sent account friend request
                 elif is_friend_request_active(sender=user, receiver=account):
                     sent_friend_request = True
+                    sent_friend_request_id = is_friend_request_active(sender=user, receiver=account).id
         elif not user.is_authenticated:
             is_self = False
         else:
@@ -113,6 +112,7 @@ class ProfileView(View):
         ctx['received_friend_request'] = received_friend_request
         ctx['sent_friend_request'] = sent_friend_request
         ctx['received_friend_request_id'] = received_friend_request_id
+        ctx['sent_friend_request_id'] = sent_friend_request_id
         ctx['active_friend_requests'] = active_friend_requests
 
         return render(request, self.template_name, ctx)
@@ -123,52 +123,55 @@ class AccountSearch(View):
 
     def get(self, request):
         user = request.user
-        search_query = request.GET.get("search", False)
+        if user.is_authenticated:
+            search_query = request.GET.get("search", False)
 
-        if search_query:
-            info_check = AccountInfo.objects.all()
-            if not info_check:
-                results = Account.objects.filter(username__icontains=search_query)
-            else:
-                res1 = Account.objects.filter(Q(username__icontains=search_query))
-                res2 = AccountInfo.objects.filter(Q(name__icontains=search_query) | Q(tags__name__in=[search_query]))
-
-                results = list(res1) + list(res2)
-
-                final_results = list()
-                seen_keys = set()
-                for res in results:
-                    if isinstance(res, Account):
-                        if res.id not in seen_keys:
-                            seen_keys.add(res.id)
-                            final_results.append(res)
-                    elif isinstance(res, AccountInfo):
-                        if res.owner.id not in seen_keys:
-                            seen_keys.add(res.owner.id)
-                            # replace the result with the account that matches this and add it to the results
-                            # as all searches are done on primary keys, therefore the primary key of an account info
-                            # result would return the wrong search result
-                            account_res = Account.objects.get(id=res.owner.id)
-                            final_results.append(account_res)
-                results = final_results
-
-            friend_list = FriendList.objects.get(owner=user)
-            
-            accounts = []
-            for account in results:
-                # check if account is a friend of user
-                if account in friend_list.friends.all():
-                    accounts.append((account, "1"))
-                # check if friend request has already been sent to account
-                elif FriendRequest.objects.filter(sender=request.user, receiver=account, is_active_request=True):
-                    accounts.append((account, "0"))
+            if search_query:
+                info_check = AccountInfo.objects.all()
+                if not info_check:
+                    results = Account.objects.filter(username__icontains=search_query)
                 else:
-                    accounts.append((account, "-1"))
-        else:
-            accounts = []
+                    res1 = Account.objects.filter(Q(username__icontains=search_query))
+                    res2 = AccountInfo.objects.filter(Q(name__icontains=search_query) | Q(tags__name__iexact=search_query))
 
-        ctx = {'accounts': accounts}
-        return render(request, self.template_name, ctx)
+                    results = list(res1) + list(res2)
+
+                    final_results = list()
+                    seen_keys = set()
+                    for res in results:
+                        if isinstance(res, Account):
+                            if res.id not in seen_keys:
+                                seen_keys.add(res.id)
+                                final_results.append(res)
+                        elif isinstance(res, AccountInfo):
+                            if res.owner.id not in seen_keys:
+                                seen_keys.add(res.owner.id)
+                                # replace the result with the account that matches this and add it to the results
+                                # as all searches are done on primary keys, therefore the primary key of an account info
+                                # result would return the wrong search result
+                                account_res = Account.objects.get(id=res.owner.id)
+                                final_results.append(account_res)
+                    results = final_results
+
+                friend_list = FriendList.objects.get(owner=user)
+                
+                accounts = []
+                for account in results:
+                    # check if account is a friend of user
+                    if account in friend_list.friends.all():
+                        accounts.append((account, "1"))
+                    # check if friend request has already been sent to account
+                    elif FriendRequest.objects.filter(sender=request.user, receiver=account, is_active_request=True):
+                        accounts.append((account, "0"))
+                    else:
+                        accounts.append((account, "-1"))
+            else:
+                accounts = []
+
+            ctx = {'accounts': accounts}
+            return render(request, self.template_name, ctx)
+        else:
+            return redirect("login")
 
 
 class EditProfileView(View):
@@ -189,7 +192,10 @@ class EditProfileView(View):
             account_form = AccountUpdateForm(instance=request.user)
             info_form = AccountInfoUpdateForm(instance=info)
 
-            if info_form.initial['name'] is None:
+            try:
+                if info_form.initial['name'] is None:
+                    info_form.initial['name'] = ""
+            except:
                 info_form.initial['name'] = ""
 
             # show users previously submitted summary so they can choose not to edit
@@ -209,24 +215,23 @@ class EditProfileView(View):
             ctx = {'account_form': account_form, 'info_form': info_form, 'summary': summary, 'account_profile_image': account.profile_image.url, 'MAX_DATA_UPLOAD': MAX_DATA_UPLOAD}
 
             return render(request, self.template_name, ctx)
-
+        
 
     def post(self, request, pk):
         account_form = AccountUpdateForm(request.POST, request.FILES, instance=request.user, id=request.user.id)
-
-        if not account_form.is_valid():
-            ctx = {'account_form': account_form}
-            return render(request, self.template_name, ctx)
 
         try:
             info = AccountInfo.objects.get(owner=request.user)
         except:
             info = None
 
-        info_form = AccountInfoUpdateForm(request.POST, instance=info)
+        info_form = AccountInfoUpdateForm(request.POST, instance=info, initial={'name': request.POST.get('name', ''), 'tags': request.POST.get('tags', '')})
 
-        if not info_form.is_valid():
-            ctx = {'info_form': info_form, 'account_form': account_form}
+        # retains all previously filled in values on the form if errors occurs with validation so that the user
+        # can see what needs to be ammended
+        if not account_form.is_valid() or not info_form.is_valid():
+            account = get_object_or_404(Account, pk=pk)
+            ctx = {'info_form': info_form, 'account_form': account_form, 'summary': request.POST.get('summary', ''), 'account_profile_image': account.profile_image.url}
             return render(request, self.template_name, ctx)
 
         info = info_form.save(commit=False)
@@ -311,3 +316,15 @@ def crop_image(request, *args, **kwargs):
             payload['exception'] = str(e)
 
     return HttpResponse(json.dumps(payload), content_type="application/json")
+
+
+def store_timezone_offset(request, *args, **kwargs):
+    user = request.user
+    payload = {}
+    if request.method == "POST" and user.is_authenticated:
+        tz_offset = request.POST.get("tz_offset", None)
+        if tz_offset is not None:
+            request.session['tz_offset'] = tz_offset
+            payload['response'] = "success"
+            return HttpResponse(json.dumps(payload), content_type="application/json")
+        

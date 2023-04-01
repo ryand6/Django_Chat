@@ -11,6 +11,7 @@ from channels.layers import get_channel_layer
 
 from account.models import Account
 from .models import PrivateMessages, PrivateChat
+from home.views import sanitise_text
 
 
 class PrivateChatRoomConsumer(AsyncWebsocketConsumer):
@@ -45,6 +46,7 @@ class PrivateChatRoomConsumer(AsyncWebsocketConsumer):
         # function will be called in each instance of PublicChatRoomConsumer
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
+        message = sanitise_text(message)
         if not message:
             return
         current_user = self.scope['user']
@@ -153,18 +155,6 @@ class PrivateChatRoomConsumer(AsyncWebsocketConsumer):
         )
 
     async def disconnect(self, close_code):
-        # user = self.scope['user']
-        # user_id = user.id
-
-        # await self.channel_layer.group_send(
-        #         self.room_group_name,
-        #         # event
-        #         {
-        #             'type': 'send.userid',
-        #             'user_id': user_id,
-        #             'status': 'disconnected',
-        #         }
-        # )
 
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 

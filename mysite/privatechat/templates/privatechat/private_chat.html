@@ -1,6 +1,7 @@
 {% extends "base_menu.html" %}
 {% load app_tags %}
 {% load static %}
+{% load tz %}
 {% block content %}
 
 <style type="text/css">
@@ -372,7 +373,8 @@
                             {{ message.message }}
                         </span>
                         <span class="chatroom-message-timestamp">
-                            {{ message.created_at|date:"H:i" }}
+                            <!-- convert timestamp to user's local time -->
+                            {{ message.created_at|timezone:user_timezone|date:"H:i" }}
                         </span>
                     </div>
                 </div>
@@ -716,8 +718,8 @@
 
     // send message
     document.querySelector('#chat_message_submit').onclick = function(e) {
-        const messageInputDom = document.querySelector('#chat_message_input');
-        const message = messageInputDom.value;
+        var message = $("#chat_message_input").data('emojioneArea').getText();
+        console.log(message);
         chatSocket.send(JSON.stringify({
             'message': message
         }));
@@ -797,10 +799,18 @@
                         let message = messages[i];
                         let username = message.username;
                         let timestamp = message.timestamp;
+                        console.log(timestamp);
                         let userid = message.userid;
                         let timestampAsObj = new Date(timestamp);
                         let timestampFormattedAsDate = formatter.format(timestampAsObj);
+                        // convert offset to milliseconds to perform time calculation
+                        let tzOffset = new Date().getTimezoneOffset() * 60 * 1000;
+                        console.log(tzOffset);
+                        // adjust the time of the timestamp according to the users local timezone offset
+                        timestampAsObj.setTime(timestampAsObj.getTime() - tzOffset);
+                        console.log(timestampAsObj);
                         let timestampFormattedAsTime = timestampAsObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        console.log(timestampFormattedAsTime);
                         
                         let text = message.message;
                         let profile_pic = message.profile_pic;

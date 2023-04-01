@@ -1,6 +1,8 @@
 import json
+import pytz
 
 from django.views import View
+from django.utils import timezone
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Subquery, OuterRef, Count
 from django.shortcuts import render, redirect, get_object_or_404
@@ -95,10 +97,20 @@ class PrivateChatView(View):
         username = request.user.username
         chatroom = get_object_or_404(PrivateChat, pk=room_id)
         chat_users = chatroom.users.all()
-            # if user is not part of private chat, prevent access
+        # if user is not part of private chat, prevent access
         if request.user not in chat_users:
             raise PermissionDenied
         print(chat_users)
+
+        timezone_offset = request.session.get('tz_offset', None)
+        print(timezone_offset)
+        if timezone_offset is not None:
+            timezone_offset = int(timezone_offset) * -1
+            user_timezone = timezone.get_fixed_timezone(timezone_offset)
+            print(user_timezone)
+        else:
+            user_timezone = 0
+
         recent_messages = PrivateMessages.objects.filter(room=chatroom).order_by('-id')[:40]
         recent_messages = recent_messages[::-1]
 
@@ -162,10 +174,9 @@ class PrivateChatView(View):
             print(e)
             chats_with_last_messages = []
 
-        ctx = {'room_id': room_id, 'userid': userid, 'username': username, 'recent_messages': recent_messages, 'chat_users': chat_users, 'chats': chats_with_last_messages} 
+        ctx = {'room_id': room_id, 'userid': userid, 'username': username, 'recent_messages': recent_messages, 'chat_users': chat_users, 'chats': chats_with_last_messages, 'user_timezone': user_timezone} 
 
         return render(request, self.template_name, ctx)
-    
 
 
 def update_chat_log(request):
@@ -242,7 +253,7 @@ def create_chat(request):
         payload['room_id'] = chat.id
         payload['response'] = "success"
         return HttpResponse(json.dumps(payload), content_type="application/json")
-    
+
 
 def get_previous_messages_private(request):
     if request.method == "GET":
@@ -253,7 +264,7 @@ def get_previous_messages_private(request):
         previous_messages = PrivateMessages.objects.filter(room=chatroom, id__lt=oldest_message.id).order_by('-id')[:40]
         response_data = {'messages': []}
         for message in previous_messages:
-            message_data = {'id': message.id, 'userid': message.user.id, 'message': message.message, 'timestamp': message.created_at.isoformat(), 'username': message.user.username, 'profile_pic': message.user.profile_image.url}
+            message_data = {'id': message.id, 'userid': message.user.id, 'message': message.message, 'timestamp': user_time.isoformat(), 'username': message.user.username, 'profile_pic': message.user.profile_image.url}
             response_data['messages'].append(message_data)
         return JsonResponse(response_data)
     

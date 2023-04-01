@@ -7,5 +7,17 @@
         autocomplete: false
         });
     });
+
+
+    // fixes issue of not being able to send message using enter key when using emojionearea
+    // library
+    $('#chat_message_input').emojioneArea({
+    events: {
+        keyup: function (editor, event) {
+        // Manually trigger the keyup event for the input element
+        $('#chat_message_input').trigger($.Event('keyup', { keyCode: event.keyCode }));
+        }
+    }
+    });
     
 </script>

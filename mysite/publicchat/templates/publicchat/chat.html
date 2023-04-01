@@ -1,6 +1,7 @@
 {% extends "base_menu.html" %}
 {% load app_tags %}
 {% load static %}
+{% load tz %}
 {% block content %}
 
 <style type="text/css">
@@ -243,7 +244,8 @@
                             {{ message.message }}
                         </span>
                         <span class="chatroom-message-timestamp">
-                            {{ message.created_at|date:"H:i" }}
+                            <!-- convert timestamp to user's local time -->
+                            {{ message.created_at|timezone:user_timezone|date:"H:i" }}
                         </span>
                     </div>
                 </div>
@@ -319,184 +321,180 @@
             var lastDateSentFormatted = "";
         }
 
-        const chatSocket = new WebSocket(
-            'ws://' + window.location.host + '/ws/public_chat/'
-        );
+    const chatSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/public_chat/'
+    );
 
-        chatSocket.onmessage = function (e) {
-            const data = JSON.parse(e.data);
-            console.log(data);
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        console.log(data);
 
-            if (Object.keys(data).length == 2) {
-                const userid = data.user_id;
-                const onlineStatus = data.status;
-                const statusElement = document.getElementById(`id_user_${userid}_online_status`);
-                if (onlineStatus == 'connected') {
-                    statusElement.classList.remove('user-offline-circle');
-                    statusElement.classList.add('user-online-circle');
-                }
-                else if (onlineStatus == 'disconnected') {
-                    statusElement.classList.remove('user-online-circle');
-                    statusElement.classList.add('user-offline-circle');
-                }
-            } else {
-                const messagesElement = document.querySelector('#chat_log');
+        // const userid = data.user_id;
+        // const onlineStatus = data.status;
+        // const statusElement = document.getElementById(`id_user_${userid}_online_status`);
+        // if (onlineStatus == 'connected') {
+        //     statusElement.classList.remove('user-offline-circle');
+        //     statusElement.classList.add('user-online-circle');
+        // }
+        // else if (onlineStatus == 'disconnected') {
+        //     statusElement.classList.remove('user-online-circle');
+        //     statusElement.classList.add('user-offline-circle');
+        // }
+        const messagesElement = document.querySelector('#chat_log');
 
-                let dateObj = new Date(data.timestamp);
-                let websocketMessageDateSentFormatted = dateObj.toLocaleDateString("en-GB");
+        let dateObj = new Date(data.timestamp);
+        let websocketMessageDateSentFormatted = dateObj.toLocaleDateString("en-GB");
 
-                let isDateSeparatorAdded = false;
+        let isDateSeparatorAdded = false;
 
-                // if websocket message sent on new day, add the date separator to the document before adding the message
-                if (websocketMessageDateSentFormatted != lastDateSentFormatted) {
-                    const dateSeperatorContainer = document.createElement('div');
-                    dateSeperatorContainer.classList.add('date-separator');
-                    const dateSeperatorDashesSpan1 = document.createElement('span');
-                    dateSeperatorDashesSpan1.classList.add('date-separator-dashes');
-                    const dateSeperatorDashesSpan2 = document.createElement('span');
-                    dateSeperatorDashesSpan2.classList.add('date-separator-dashes');
-                    var dateSeperatorDateSpan = document.createElement('span');
-                    dateSeperatorDateSpan.classList.add('chat-new-date');
+        // if websocket message sent on new day, add the date separator to the document before adding the message
+        if (websocketMessageDateSentFormatted != lastDateSentFormatted) {
+            const dateSeperatorContainer = document.createElement('div');
+            dateSeperatorContainer.classList.add('date-separator');
+            const dateSeperatorDashesSpan1 = document.createElement('span');
+            dateSeperatorDashesSpan1.classList.add('date-separator-dashes');
+            const dateSeperatorDashesSpan2 = document.createElement('span');
+            dateSeperatorDashesSpan2.classList.add('date-separator-dashes');
+            var dateSeperatorDateSpan = document.createElement('span');
+            dateSeperatorDateSpan.classList.add('chat-new-date');
 
-                    // format date of iso string to match that of page reload date separator
-                    let isoDate = data.timestamp;
-                    let date = new Date(isoDate);
-                    let formattedDate = formatter.format(date);
-                    dateSeperatorDateSpan.textContent = " " + formattedDate + " ";
+            // format date of iso string to match that of page reload date separator
+            let isoDate = data.timestamp;
+            let date = new Date(isoDate);
+            let formattedDate = formatter.format(date);
+            dateSeperatorDateSpan.textContent = " " + formattedDate + " ";
 
-                    let dashCount = addDashesWebSocket(dateSeperatorDateSpan);
-                    // remove style properties set by temp element when calling addDashesWebSocket
-                    dateSeperatorDateSpan.style.removeProperty('visibility');
-                    dateSeperatorDateSpan.style.removeProperty('position');
+            let dashCount = addDashesWebSocket(dateSeperatorDateSpan);
+            // remove style properties set by temp element when calling addDashesWebSocket
+            dateSeperatorDateSpan.style.removeProperty('visibility');
+            dateSeperatorDateSpan.style.removeProperty('position');
 
-                    // add dashes for either side of the date
-                    dateSeperatorDashesSpan1.innerHTML = "&ndash;".repeat(dashCount);
-                    dateSeperatorDashesSpan2.innerHTML = "&ndash;".repeat(dashCount);
+            // add dashes for either side of the date
+            dateSeperatorDashesSpan1.innerHTML = "&ndash;".repeat(dashCount);
+            dateSeperatorDashesSpan2.innerHTML = "&ndash;".repeat(dashCount);
 
-                    dateSeperatorContainer.appendChild(dateSeperatorDashesSpan1);
-                    dateSeperatorContainer.appendChild(dateSeperatorDateSpan);
-                    dateSeperatorContainer.appendChild(dateSeperatorDashesSpan2);
-                    messagesElement.appendChild(dateSeperatorContainer);
+            dateSeperatorContainer.appendChild(dateSeperatorDashesSpan1);
+            dateSeperatorContainer.appendChild(dateSeperatorDateSpan);
+            dateSeperatorContainer.appendChild(dateSeperatorDashesSpan2);
+            messagesElement.appendChild(dateSeperatorContainer);
 
-                    isDateSeparatorAdded = true;
+            isDateSeparatorAdded = true;
 
-                    lastDateSentFormatted = websocketMessageDateSentFormatted;
-                }
+            lastDateSentFormatted = websocketMessageDateSentFormatted;
+        }
 
-                const messageElement = document.createElement('div');
-                messageElement.classList.add('chatroom-message-container');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chatroom-message-container');
 
-                const pictureElement = document.createElement('div');
-                pictureElement.classList.add('chatroom-picture-container');
+            const pictureElement = document.createElement('div');
+            pictureElement.classList.add('chatroom-picture-container');
 
-                if (data.profile_pic) {
-                    let linkUrl = "/account/" + requestUserid + "/";
-                    const imageElementLink = document.createElement('a');
-                    imageElementLink.classList.add('user-profile-link-image');
-                    imageElementLink.setAttribute("href", linkUrl);
-                    const imageElement = document.createElement('img');
-                    imageElement.src = data.profile_pic;
-                    imageElement.alt = data.username + '\'s profile image';
-                    imageElement.classList.add('chatroom-message-user-pic')
-                    imageElementLink.appendChild(imageElement);
-                    pictureElement.appendChild(imageElementLink);
+            if (data.profile_pic) {
+                let linkUrl = "/account/" + requestUserid + "/";
+                const imageElementLink = document.createElement('a');
+                imageElementLink.classList.add('user-profile-link-image');
+                imageElementLink.setAttribute("href", linkUrl);
+                const imageElement = document.createElement('img');
+                imageElement.src = data.profile_pic;
+                imageElement.alt = data.username + '\'s profile image';
+                imageElement.classList.add('chatroom-message-user-pic')
+                imageElementLink.appendChild(imageElement);
+                pictureElement.appendChild(imageElementLink);
 
-                    if (isDateSeparatorAdded == false) {
-                        // separate messages from different users
-                        const para1 = document.createElement('p');
-                        const para2 = document.createElement('p');
-                        messagesElement.appendChild(para1);
-                        messagesElement.appendChild(para2);
-                    }
-                }
-
-                const messageBodyElement = document.createElement('div');
-                messageBodyElement.classList.add('chatroom-message-body-container');
-
-                const messageHeaderElement = document.createElement('div');
-                messageHeaderElement.classList.add('chatroom-message-headers-container');
-
-                const messageTextElement = document.createElement('div');
-                messageTextElement.classList.add('chatroom-message-text-container');
-
-                messageBodyElement.appendChild(messageHeaderElement);
-                messageBodyElement.appendChild(messageTextElement);
-
-                if (data.username) {
-                    let linkUrl = "/account/" + requestUserid + "/";
-                    const usernameElementLink = document.createElement('a');
-                    usernameElementLink.classList.add('user-profile-link-username');
-                    usernameElementLink.setAttribute("href", linkUrl);
-                    // if message is from current user, make their username in the message orange
-                    if (data.username == requestUsername) {
-                        const authorElement = document.createElement('span');
-                        authorElement.classList.add('chatroom-message-author-current-user');
-                        authorElement.textContent = data.username;
-                        usernameElementLink.appendChild(authorElement);
-                        messageHeaderElement.appendChild(usernameElementLink);
-                    }
-                    else {
-                        const authorElement = document.createElement('span');
-                        authorElement.classList.add('chatroom-message-author-other-user');
-                        authorElement.textContent = data.username;
-                        usernameElementLink.appendChild(authorElement);
-                        messageHeaderElement.appendChild(usernameElementLink);
-                    }
-                }
-
-                if (data.code_snippet == true) {
-                    const bodyElement = document.createElement('code');
-                    bodyElement.classList.add('chatroom-message-body-code');
-                    bodyElement.textContent = data.message;
-                    messageTextElement.appendChild(bodyElement);
-                }
-                else {
-                    const bodyElement = document.createElement('span');
-                    bodyElement.classList.add('chatroom-message-body');
-                    bodyElement.textContent = data.message;
-                    messageTextElement.appendChild(bodyElement);
-                }
-
-                const timestampElement = document.createElement('span');
-                timestampElement.classList.add('chatroom-message-timestamp');
-                // convert iso format timestamp into date object so that it can be parsed
-                let timestampObj = new Date(data.timestamp);
-                // convert iso timestamp into "hh:mm" format for chat log
-                let formattedTime = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                timestampElement.textContent = formattedTime;
-                messageTextElement.appendChild(timestampElement);
-
-                // add message to chat log
-                messageElement.appendChild(pictureElement);
-                messageElement.appendChild(messageBodyElement);
-                messagesElement.appendChild(messageElement);
-
-                // is current user sends new message, auto scroll to bottom of chat log
-                if (requestUsername == data.username_hidden) {
-                    setTimeout(function() {
-                        messagesElement.scrollTop = messagesElement.scrollHeight;
-                    }, 100);
+                if (isDateSeparatorAdded == false) {
+                    // separate messages from different users
+                    const para1 = document.createElement('p');
+                    const para2 = document.createElement('p');
+                    messagesElement.appendChild(para1);
+                    messagesElement.appendChild(para2);
                 }
             }
+
+        const messageBodyElement = document.createElement('div');
+        messageBodyElement.classList.add('chatroom-message-body-container');
+
+        const messageHeaderElement = document.createElement('div');
+        messageHeaderElement.classList.add('chatroom-message-headers-container');
+
+        const messageTextElement = document.createElement('div');
+        messageTextElement.classList.add('chatroom-message-text-container');
+
+        messageBodyElement.appendChild(messageHeaderElement);
+        messageBodyElement.appendChild(messageTextElement);
+
+        if (data.username) {
+            let linkUrl = "/account/" + requestUserid + "/";
+            const usernameElementLink = document.createElement('a');
+            usernameElementLink.classList.add('user-profile-link-username');
+            usernameElementLink.setAttribute("href", linkUrl);
+            // if message is from current user, make their username in the message orange
+            if (data.username == requestUsername) {
+                const authorElement = document.createElement('span');
+                authorElement.classList.add('chatroom-message-author-current-user');
+                authorElement.textContent = data.username;
+                usernameElementLink.appendChild(authorElement);
+                messageHeaderElement.appendChild(usernameElementLink);
+            }
+            else {
+                const authorElement = document.createElement('span');
+                authorElement.classList.add('chatroom-message-author-other-user');
+                authorElement.textContent = data.username;
+                usernameElementLink.appendChild(authorElement);
+                messageHeaderElement.appendChild(usernameElementLink);
+            }
         }
+
+        const bodyElement = document.createElement('span');
+        bodyElement.classList.add('chatroom-message-body');
+        bodyElement.textContent = data.message;
+        messageTextElement.appendChild(bodyElement);
+
+        const timestampElement = document.createElement('span');
+        timestampElement.classList.add('chatroom-message-timestamp');
+        // convert iso format timestamp into date object so that it can be parsed
+        let timestampObj = new Date(data.timestamp);
+        // convert iso timestamp into "hh:mm" format for chat log
+        let formattedTime = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        timestampElement.textContent = formattedTime;
+        messageTextElement.appendChild(timestampElement);
+
+        // add message to chat log
+        messageElement.appendChild(pictureElement);
+        messageElement.appendChild(messageBodyElement);
+        messagesElement.appendChild(messageElement);
+
+        // is current user sends new message, auto scroll to bottom of chat log
+        if (requestUsername == data.username_hidden) {
+            setTimeout(function() {
+                messagesElement.scrollTop = messagesElement.scrollHeight;
+            }, 100);
+        }
+    }
 
     chatSocket.onclose = function(e) {
             console.error('Chat socket closed unexpectedly');
             console.log(e);
         };
 
+    chatSocket.onerror = function(e) {
+        // Handle websocket errors
+        console.error('Websocket error', event);
+        };
+
     document.querySelector('#chat_message_input').focus();
 
     // if user presses enter, send message
     document.querySelector('#chat_message_input').onkeyup = function(e) {
+        console.log(e.keyCode);
         if (e.keyCode === 13) {  // enter, return
+            console.log("enter pressed");
             document.querySelector('#chat_message_submit').click();
         }
     };
 
     document.querySelector('#chat_message_submit').onclick = function(e) {
-            const messageInputDom = document.querySelector('#chat_message_input');
-            const message = messageInputDom.value;
+            var message = $("#chat_message_input").data('emojioneArea').getText();
+            console.log(message);
             chatSocket.send(JSON.stringify({
                 'message': message
             }));
@@ -523,10 +521,18 @@
                         let message = messages[i];
                         let username = message.username;
                         let timestamp = message.timestamp;
+                        console.log(timestamp);
                         let userid = message.userid;
                         let timestampAsObj = new Date(timestamp);
                         let timestampFormattedAsDate = formatter.format(timestampAsObj);
+                        // convert offset to milliseconds to perform time calculation
+                        let tzOffset = new Date().getTimezoneOffset() * 60 * 1000;
+                        console.log(tzOffset);
+                        // adjust the time of the timestamp according to the users local timezone offset
+                        timestampAsObj.setTime(timestampAsObj.getTime() - tzOffset);
+                        console.log(timestampAsObj);
                         let timestampFormattedAsTime = timestampAsObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        console.log(timestampFormattedAsTime);
                         
                         let text = message.message;
                         let profile_pic = message.profile_pic;

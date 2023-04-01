@@ -155,7 +155,7 @@
                                 </div>
                                 {% elif sent_friend_request %}
                                 <a class="btn btn-danger" id="id_cancel_friend_request_btn" data-request-url="{% url 'friends:cancel_friend_request' %}"
-                                data-account-id="{{ account.id }}" onclick='cancelFriendRequest(this);'>
+                                data-account-id="{{ account.id }}" data-friend-request-id="{{ sent_friend_request_id }}" onclick='cancelFriendRequest(this);'>
                                     Cancel friend request
                                 </a>
                                 {% else %}
@@ -208,7 +208,7 @@
                         {% if info.tags.all %}
                             <div class="d-flex flex-row justify-content-center" style="flex-wrap: wrap;">
                             {% for tag in info.tags.all %}
-                                <span class="p-1 m-1" style="border: 1px green solid; background-color: LightGreen;">{{ tag }}</span>
+                                <span class="p-1 m-1" style="border: 1px green solid; background-color: LightGreen;">{{ tag|lower }}</span>
                             {% endfor %}
                             </div>
                         {% endif %}

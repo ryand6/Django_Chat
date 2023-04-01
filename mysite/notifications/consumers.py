@@ -11,6 +11,7 @@ from asgiref.sync import async_to_sync
 from privatechat.models import PrivateChat, PrivateMessages
 from notifications.models import MessageNotifications, FriendNotifications
 from friends.models import FriendRequest, FriendList
+from account.models import Account
 
 
 class NotificationConsumer(AsyncWebsocketConsumer):
@@ -81,7 +82,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             'timestamp': timestamp
         }))
 
-
     def add_message_notification(recipient, room_id, sender, message):
         room = PrivateChat.objects.get(id=room_id)
         notification = MessageNotifications.objects.create(recipient=recipient, sender=sender, message=message, room=room)
@@ -104,7 +104,102 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         return notification
 
     async def disconnect(self, close_code):
+         print("disconnect notifications")
+         print("notifications room group: ")
+         print(self.room_group_name)
+         print("notifications disconnect channel name: ")
+         print(self.channel_name)
+         print("notifications disconnect channel name type: ")
+         print(type(self.channel_name))
          await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+         print("notifications discard")
+
+
+class OnlineStatusConsumer(AsyncWebsocketConsumer):
+    
+    async def connect(self):
+        self.room_group_name = 'online_status'
+
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+
+        await self.accept()
+
+        user = self.scope['user']
+        user_id = user.id
+
+        print(user_id)
+
+        print(self.channel_name)
+
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            # event
+            {
+                'type': 'send.userid',
+                'user_id': user_id,
+                'status': 'connected',
+            }
+        )
+
+        
+    async def send_userid(self, event):
+        print("send_userid called")
+
+        user_id = event['user_id']
+        status = event['status']
+
+        print(status)
+
+        online = False
+
+        if status == "connected":
+            online = True
+
+        await self.set_user_status(user_id, online)
+
+        await self.send(text_data=json.dumps({'user_id': user_id, 'status': status}))
+
+
+    @database_sync_to_async
+    def set_user_status(self, user_id, online):
+        print("set_user_status called")
+        print(online)
+        user = Account.objects.get(pk=user_id)
+        user.online = online
+        user.save()
+
+
+    async def disconnect(self, close_code):
+
+        user = self.scope['user']
+        user_id = user.id
+
+        print("diconnect online status")
+        print(self.room_group_name)
+        print(user_id)
+        print("online status disconnect channel name: ")
+        print(self.channel_name)
+        print("online status disconnect channel name type: ")
+        print(type(self.channel_name))
+
+        # await self.send_userid({'user_id': user_id,
+        #         'status': 'disconnected'})
+
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+        print("discard called")
+        
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            # event
+            {
+                'type': 'send_userid',
+                'user_id': user_id,
+                'status': 'disconnected',
+            }
+        )
+
+        print("disconnected")
 
 
 # when a private message has been saved to the database, get all the recipients of that message and

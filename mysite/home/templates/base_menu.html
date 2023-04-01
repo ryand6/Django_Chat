@@ -20,7 +20,7 @@
     }
 
     .dropdown-menu{
-        background-color: #5D3FD3;
+        background-color: white;
     }
 
     .material-symbols-outlined {
@@ -326,6 +326,8 @@
 
 <script type="text/javascript">
 
+    var token = "{{ csrf_token }}";
+
     function runSearch(){
         var query = document.getElementById("id_search_bar").value;
         console.log(query)
@@ -348,14 +350,42 @@
     const isAuthenticated = "{{ user.is_authenticated }}";
     var userId = "{{ user.id }}";
 
+    // handle online status websocket real time updates for all users
+    if (isAuthenticated === "True") {
+        const onlineStatusSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/online_status/'
+        );
+
+        onlineStatusSocket.onmessage = function(e) {
+            let data = JSON.parse(e.data)
+            console.log("A user's online status has changed");
+
+            const userid = data.user_id;
+            const onlineStatus = data.status;
+            const statusElement = document.getElementById(`id_user_${userid}_online_status`);
+            if (statusElement !== null) {
+                if (onlineStatus == 'connected') {
+                    statusElement.classList.remove('user-offline-circle');
+                    statusElement.classList.add('user-online-circle');
+                }
+                else if (onlineStatus == 'disconnected') {
+                    statusElement.classList.remove('user-online-circle');
+                    statusElement.classList.add('user-offline-circle');
+                }
+            }
+        }
+    }
+
     if (isAuthenticated === "True") {
 
         const notificationSocket = new WebSocket(
             'ws://' + window.location.host + '/ws/notifications/' + userId + '/'
         );
 
+        storeUserTimezoneOffset();
+
         notificationSocket.onmessage = function(e) {
-            var data = JSON.parse(e.data);
+            let data = JSON.parse(e.data);
             console.log("NOTIFICATION!")
             console.log(data);
 
@@ -399,7 +429,8 @@
             }
 
             notificationSocket.onclose = function(e) {
-                console.error('Chat socket closed unexpectedly');
+                console.error('Notification socket closed unexpectedly');
+                location.reload();
             };
 
             notificationSocket.onerror = function(e) {
@@ -410,6 +441,33 @@
     }
     else {
         console.log("NOT AUTHENTICATED!");
+    }
+
+
+    function storeUserTimezoneOffset() {
+        var tzOffset = new Date().getTimezoneOffset();
+        console.log("tzOffset: ");
+        console.log(tzOffset);
+        console.log(token);
+        requestData = {
+            "csrfmiddlewaretoken": token,
+            "tz_offset": tzOffset,
+        }
+        $.ajax({
+            url: window.location.protocol + "//" + window.location.host + "/account/store_timezone_offset/",
+            type: 'POST',
+            dataType: "json",
+            timeout: 5000,
+            data: requestData,
+            success: function(data) {
+                if (data['response'] == "success") {
+                    console.log("stored users timezone offset");
+                }
+            },
+            error: function(data) {
+                alert("Something went wrong: " + data);
+            }
+        });
     }
 
 
@@ -488,7 +546,10 @@
     });
     }
 
-    document.querySelector('#id_friend_notifications').onclick = function(e) {
+    friendNotifications = document.querySelector('#id_friend_notifications');
+
+    if (friendNotifications !== null) {
+        friendNotifications.onclick = function(e) {
         var messageNotificationCount = document.querySelector('.friend-notification-count');
         if (messageNotificationCount !== null) {
             $.ajax({
@@ -501,7 +562,8 @@
                                 updateFriendNotifications();
                             }
                         }
-            });
+                });
+            }
         }
     }
 

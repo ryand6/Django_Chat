@@ -20,7 +20,7 @@
 
         {% load crispy_forms_tags %}
 
-        <form method="post" action="{% url 'login' %}">
+        <form method="post" action="{% url 'login' %}" id="id_login_form">
         {% csrf_token %}
         {{ form|crispy }}
         <input type="submit" class="btn btn-primary" value="Login Locally" />
@@ -32,15 +32,14 @@
         </p>
 
 
-        {% if settings.SOCIAL_AUTH_GITHUB_KEY %}
+        <!-- {% if settings.SOCIAL_AUTH_GITHUB_KEY %}
         <hr/>
         <a class="btn btn-info" role="button" href="{% url 'social:begin' 'github' %}?next={{ next }}">
             <i class="fa fa-github" aria-hidden="true"></i>
             Login with GitHub</a>
-        {% endif %}
+        {% endif %} -->
     </div>
 </div>
-
 
 <!-- ROOT_URLCONF {{ settings.ROOT_URLCONF }} -->
 

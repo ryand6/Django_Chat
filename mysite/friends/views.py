@@ -7,6 +7,7 @@ from django.core.exceptions import PermissionDenied
 from account.models import Account
 from friends.models import FriendRequest, FriendList
 from notifications.models import FriendNotifications
+from privatechat.models import PrivateChat
 
 
 class FriendListView(View):
@@ -178,12 +179,20 @@ def cancel_friend_request(request, *args, **kwargs):
     payload = {}
     if request.method == "POST" and user.is_authenticated:
         user_id = request.POST.get("receiver_user_id")
+        sent_friend_request_id = request.POST.get("friend_request_id")
         if user_id:
             receiver = Account.objects.get(pk=user_id)
             try:
                 friend_request = FriendRequest.objects.filter(sender=user, receiver=receiver, is_active_request=True)
             except:
                 payload['response'] = "friend request doesn't exist"
+
+            try:
+                friend_notification = FriendNotifications.objects.get(friend_request_id=sent_friend_request_id)
+                friend_notification.engaged = True
+                friend_notification.save()
+            except:
+                print("no friend request notification found")
             
             # should only be one request as combination of sender and user is unique, but handle just in case
             # and print that this occurred
@@ -210,6 +219,17 @@ def unfriend(request, *args, **kwargs):
                 friend_list = FriendList.objects.get(owner=user)
                 friend_list.remove_friend(account)
                 payload['response'] = "success"
+                try:
+                    print(account.email)
+                    print(user.email)
+                    users = sorted(list((account.email, user.email)))
+                    print(users)
+                    title = " ".join(users) + " private chat"
+                    print(title)
+                    privatechat = PrivateChat.objects.get(title=title)
+                    privatechat.delete()
+                except PrivateChat.DoesNotExist:
+                    print("No private chat for this combination of users")
             except Exception as e:
                 print(str(e))
                 payload['response'] = "something went wrong"

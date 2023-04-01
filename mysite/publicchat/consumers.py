@@ -1,11 +1,11 @@
 import json
 import datetime
-from django.utils import timezone
+
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 from .models import PublicChat, PublicMessages
-from account.models import Account
+from home.views import sanitise_text
 
 
 class PublicChatRoomConsumer(AsyncWebsocketConsumer):
@@ -20,16 +20,6 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
         user = self.scope['user']
         user_id = user.id
 
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            # event
-            {
-                'type': 'send.userid',
-                'user_id': user_id,
-                'status': 'connected',
-            }
-        )
-
 
     async def receive(self, text_data):
         # receives JSON data from javascript function when user sends message - converts
@@ -38,6 +28,7 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
         # function will be called in each instance of PublicChatRoomConsumer
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
+        message = sanitise_text(message)
         if not message:
             return
         current_user = self.scope['user']
@@ -101,12 +92,6 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
         timestamp = event['timestamp']
         username_hidden = event['username_hidden']
 
-        if message[0] and message[-1] == "`":
-            code_snippet = True
-            message = message.strip('`')
-        else:
-            code_snippet = False
-
         # sends message to WebSocket where javascript function then appends it to the chat log, thus
         # message is shown on all users inside the room group's browsers
         await self.send(text_data=json.dumps({
@@ -114,30 +99,8 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
                 'username': username,
                 'profile_pic': profile_pic,
                 'timestamp': timestamp,
-                'username_hidden': username_hidden,
-                'code_snippet': code_snippet
+                'username_hidden': username_hidden
             }))
-        
-
-    async def send_userid(self, event):
-        user_id = event['user_id']
-        status = event['status']
-
-        online = False
-
-        if status == "connected":
-            online = True
-
-        await self.set_user_status(user_id, online)
-
-        await self.send(text_data=json.dumps({'user_id': user_id, 'status': status}))
-
-
-    @database_sync_to_async
-    def set_user_status(self, user_id, online):
-        user = Account.objects.get(pk=user_id)
-        user.online = online
-        user.save()
 
 
     async def save_message(self, user, message):
@@ -153,14 +116,6 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
         user = self.scope['user']
         user_id = user.id
 
-        await self.channel_layer.group_send(
-                self.room_group_name,
-                # event
-                {
-                    'type': 'send.userid',
-                    'user_id': user_id,
-                    'status': 'disconnected',
-                }
-        )
-
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+
