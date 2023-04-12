@@ -100,14 +100,11 @@ class PrivateChatView(View):
         # if user is not part of private chat, prevent access
         if request.user not in chat_users:
             raise PermissionDenied
-        print(chat_users)
 
         timezone_offset = request.session.get('tz_offset', None)
-        print(timezone_offset)
         if timezone_offset is not None:
             timezone_offset = int(timezone_offset) * -1
             user_timezone = timezone.get_fixed_timezone(timezone_offset)
-            print(user_timezone)
         else:
             user_timezone = 0
 
@@ -184,7 +181,6 @@ def update_chat_log(request):
 
     if request.method == "GET":
         room_id = request.GET.get("room_id")
-        print("Room ID: ", str(room_id))
         private_chat = PrivateChat.objects.get(id=room_id)
         unread_count = MessageNotifications.objects.filter(recipient=request.user, room=private_chat, read=False).count()
         # uses default django ORM name to view to get all private messages associated with private chat
@@ -194,8 +190,6 @@ def update_chat_log(request):
         private_chat.last_date = last_message.created_at if last_message else None
         private_chat.last_message_user = last_message.user.id if last_message else None
         private_chat.unread_count = unread_count if unread_count else 0
-        print("UNREAD COUNT")
-        print(private_chat.unread_count)
 
         chat_users = []
         private_chat_users = private_chat.users.all()
@@ -230,16 +224,10 @@ def create_chat(request):
         title = users[0] + " " + users[1] + " private chat"
         try:
             chat = PrivateChat.objects.create(title=title)
-            # chat.users.set([request.user, friend])
             chat.users.add(request.user)
             chat.save()
             chat.users.add(friend)
             chat.save()
-            # time.sleep(5)
-            print("COME ON...")
-            print(request.user)
-            print(chat.users.all())
-            print(chat.title)
 
         # if chat already exists, retrieve the chat - integrity error arises when room title already exists
         # as the title field is unique
@@ -247,9 +235,6 @@ def create_chat(request):
             chat = PrivateChat.objects.get(title=title)
 
         chat = PrivateChat.objects.get(title=title)
-        print("USERS!")
-        print(chat.title)
-        print(chat.users.all())
         payload['room_id'] = chat.id
         payload['response'] = "success"
         return HttpResponse(json.dumps(payload), content_type="application/json")

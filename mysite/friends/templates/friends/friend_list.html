@@ -5,11 +5,11 @@
 <style type="text/css">
 
     .card{
-        background-color: grey;
+        background-color: #303333;
     }
 
     #id_account_card{
-        background-color: lightgrey;
+        background-color: #4b4b4d;
         width: 100%;
     }
 
@@ -30,6 +30,28 @@
         width: 100%;
     }
 
+    .account-profile-link {
+        text-decoration: none !important;
+    }
+
+    .account-username {
+        color: white;
+        font-size: 20pt;
+    }
+
+    .message-button {
+        background-color: #6d6f73;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+        font-weight: bold;
+        color: white;
+    }
+
+    .message-button:hover {
+        background-color: #9779a8;
+        color: white;
+    }
+
 </style>
 
 <div class="container">
@@ -42,7 +64,7 @@
                     <div class="d-flex flex-row flex-grow-1 align-items-center">
                         <a class="account-profile-link" href="{% url 'account:profile' pk=friend.id %}">
                             <div class="card-image m-2">
-                                <img class="img-fluid profile-img rounded-circle" style="border: 1px solid white;" src="{{ friend.profile_image.url }}" alt="Profile image">
+                                <img class="img-fluid profile-img rounded-circle" style="border: 1px solid white; background-color: white;" src="{{ friend.profile_image.url }}" alt="Profile image">
                             </div>
                         </a>
                         <a class="account-profile-link" href="{% url 'account:profile' pk=friend.id %}">
@@ -55,11 +77,11 @@
                         {% if user == account %}
                         <div class="d-flex flex-row card-right flex-grow-1 justify-content-end mx-2">
                             <div class="d-flex flex-row send-friend-message-container justify-content-end p-3">
-                                <div class="d-flex flex-row align-items-center btn btn-primary m-2 px-2" id="id_send_private_message">
-                                    <a class="send-friend-private-message" data-friend-id="{{ friend.id }}" data-request-url="{% url 'privatechat:create_chat' %}"
+                                <div class="d-flex flex-row align-items-center btn message-button m-2 px-2" id="id_send_private_message">
+                                    <a class="d-flex send-friend-private-message" data-friend-id="{{ friend.id }}" data-request-url="{% url 'privatechat:create_chat' %}"
                                     onclick='sendFriendMessage(this);'>
-                                        <span class="material-symbols-outlined">sms</span>
-                                        <span class="message-btn-text m-auto pl-2">Message</span>
+                                        <span class="d-flex material-symbols-outlined">sms</span>
+                                        <span class="d-flex message-btn-text m-auto pl-2">Message</span>
                                     </a>
                                 </div>
                             </div>

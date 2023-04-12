@@ -5,11 +5,11 @@
 <style type="text/css">
 
     .card{
-        background-color: grey;
+        background-color: #303333;
     }
 
     #id_account_card{
-        background-color: lightgrey;
+        background-color: #4b4b4d;
         width: 100%;
     }
 
@@ -27,7 +27,42 @@
     }
 
     .card-right{
+        width: 30%;
+        margin-left: auto;
+    }
+
+    .search-profile-tags-container {
+        flex-wrap: wrap;
+    }
+
+    .account-profile-link {
+        text-decoration: none !important;
+    }
+
+    .account-username {
+        color: white;
+        font-size: 20pt;
+    }
+
+    .search-profile-button {
+        background-color: #6d6f73;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+        font-weight: bold;
+        color: white;
+    }
+
+    .search-profile-button:hover {
+        background-color: #9779a8;
+        color: white;
+    }
+
+    .search-container {
         width: 100%;
+    }
+
+    .card-left {
+        width: 70%;
     }
 
 </style>
@@ -39,35 +74,37 @@
             {% for account in accounts %}
             <div class="d-flex flex-row" id="id_account_row">
                 <div class="card m-1" id="id_account_card">
-                    <div class="d-flex flex-row flex-grow-1 align-items-center">
-                        <a class="account-profile-link" href="{% url 'account:profile' pk=account.0.id %}">
-                            <div class="card-image m-2">
-                                <img class="img-fluid profile-img rounded-circle" style="border: 1px solid white;" src="{{ account.0.profile_image.url }}" alt="Profile image">
+                    <div class="d-flex flex-row search-container">
+                        <div class="d-flex flex-row align-items-center card-left">
+                            <a class="account-profile-link" href="{% url 'account:profile' pk=account.0.id %}">
+                                <div class="card-image m-2">
+                                    <img class="img-fluid profile-img rounded-circle" style="border: 1px solid white; background-color: white;" src="{{ account.0.profile_image.url }}" alt="Profile image">
+                                </div>
+                            </a>
+                            <a class="account-profile-link" href="{% url 'account:profile' pk=account.0.id %}">
+                                <div class="card-body px-2 mr-3">
+                                    <h5 class="account-username">
+                                        {{ account.0.username }}
+                                    </h5>
+                                </div>
+                            </a>
+                            {% if account.0.info.tags.all %}
+                            <div class="d-flex flex-row justify-content-center align-items-center mx-1 search-profile-tags-container">
+                                {% for tag in account.0.info.tags.all %}
+                                    <span class="p-1 m-1 search-profile-tags" style="background-color: #9779a8;">{{ tag }}</span>
+                                {% endfor %}
                             </div>
-                        </a>
-                        <a class="account-profile-link" href="{% url 'account:profile' pk=account.0.id %}">
-                            <div class="card-body px-2 mr-5">
-                                <h5 class="account-username">
-                                    {{ account.0.username }}
-                                </h5>
-                            </div>
-                        </a>
-                        {% if account.0.info.tags.all %}
-                        <div class="d-flex flex-row justify-content-center align-items-center mx-5">
-                            {% for tag in account.0.info.tags.all %}
-                                <span class="p-1 m-1" style="border: 1px green solid; background-color: LightGreen;">{{ tag }}</span>
-                            {% endfor %}
+                            {% endif %}
                         </div>
-                        {% endif %}
                         {% if account.0 != request.user %}
-                        <div class="d-flex flex-row card-right flex-grow-1 justify-content-end mx-2">
+                        <div class="d-flex flex-row card-right align-items-center">
                             {% if account.1 == "1" %}
-                            <div class="d-flex flex-row friend-text-container justify-content-end p-2">
+                            <div class="d-flex flex-row friend-text-container p-2">
                                 <p class="message-account">
-                                    <a class="btn btn-primary mr-2 send-friend-private-message" data-friend-id="{{ account.0.id }}" data-request-url="{% url 'privatechat:create_chat' %}"
+                                    <a class="d-flex btn search-profile-button mr-2 send-friend-private-message" data-friend-id="{{ account.0.id }}" data-request-url="{% url 'privatechat:create_chat' %}"
                                     onclick='sendFriendMessage(this);'>
-                                        <span class="material-symbols-outlined">sms</span>
-                                        <span class="message-btn-text m-auto pl-2">Message</span>
+                                        <span class="d-flex material-symbols-outlined">sms</span>
+                                        <span class="d-flex message-btn-text m-auto pl-2">Message</span>
                                     </a>
                                 </p>
                             </div>
@@ -80,7 +117,7 @@
                             </div>
                             {% elif account.1 == "-1" %}
                             <div class="d-flex flex-row add-friend-container justify-content-end p-3">
-                                <a class="btn btn-primary" id="id_add_friend_btn" data-request-url="{% url 'friends:friend_request' %}" 
+                                <a class="btn search-profile-button" id="id_add_friend_btn" data-request-url="{% url 'friends:friend_request' %}" 
                                 data-account-id="{{ account.0.id }}" onclick='sendFriendRequest(this);'>
                                     Add friend
                                 </a>

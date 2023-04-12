@@ -14,18 +14,21 @@
         const chatContainer = document.getElementById('chat_log');
         if (chatContainer) {
             var containerWidth = chatContainer.getBoundingClientRect().width - 150;
+            console.log(containerWidth);
             try {
-                var messageDateContainer = document.getElementById('id_chat_new_date');
-                var dateContainerWidth = messageDateContainer.getBoundingClientRect().width;
-                // &ndash; char has a width of 8 - divide by two as they need to go either side of the date text
-                var numDashes = Math.floor((containerWidth - dateContainerWidth - 20) / 8 / 2);
                 var spanTags = document.getElementsByClassName('date-separator-dashes');
+                var dateContainers = document.getElementsByClassName('chat-new-date');
                 for (var i=0; i < spanTags.length; i++) {
+                    var j = Math.floor(i / 2);
+                    var dateContainerWidth = dateContainers[j].offsetWidth;
+                    // &ndash; char has a width of 8 - divide by two as they need to go either side of the date text
+                    var numDashes = Math.round(containerWidth - dateContainerWidth - 20) / 8 / 2;
                     spanTags[i].innerHTML = '&ndash;'.repeat(numDashes);
                     }
                 }
             catch (error) {
                 console.log("No messages in chat yet")
+                console.log(error)
                 return
             }
         }

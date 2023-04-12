@@ -314,6 +314,8 @@ def crop_image(request, *args, **kwargs):
         except Exception as e:
             payload['result'] = "error"
             payload['exception'] = str(e)
+    else:
+        return redirect("login")
 
     return HttpResponse(json.dumps(payload), content_type="application/json")
 

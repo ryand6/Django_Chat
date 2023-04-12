@@ -7,25 +7,27 @@
     } 
 
     #id_chat_log_container{
-        height: calc(100vh - 180px);
+        height: calc(100vh - 185px);
+        width: 100%;
+        max-width: 2000px;
         flex: 1;
         padding-left: 0;
         padding-right: 0;
     }
 
     #id_all_private_chats_container{
-        width: 70%;
+        width: 100%;
         height: 100%;
-        margin-right: 2em;
+        padding: 2em;
+        background-color: #303333;
     }
 
     #id_private_chats_log{
-        background-color: grey;
-        padding-left: 2em;
-        padding-right: 2em;
+        background-color: #3d3d3d;
+        padding: 1em;
         overflow-x: hidden;
         overflow-y: visible;
-        height: 100%;
+        border-radius: 15pt;
     }
 
     .private-chats-room-pic{
@@ -42,10 +44,15 @@
     .private-chats-room-message-container{
         display: flex;
         flex-direction: row;
-        background-color: black;
+        background-color: #272729;
         padding: 0.5em;
         border-radius: 10px;
-        margin-top: 1em;
+        margin-top: 0.5em;
+        transition: background-color 0.1s ease-in-out;
+    }
+
+    .private-chats-room-message-container:hover {
+        background-color: #4b4b4d;
     }
 
     .private-chats-room-picture-container{
@@ -134,69 +141,103 @@
         margin-right: 1em;
     }
 
+    .private-all-chats-banner{
+        background-color: #242729;
+        height: 60px;
+        width: 100%;
+        max-width: 2000px;
+        align-items: center;
+    }
+
+    .private-all-chats-banner-text{
+        font-weight: bold;
+        margin-left: 4em;
+    }
+
+    .no-chats-text-container{
+        margin-left: 10em;
+        margin-right: 10em;
+        border-radius: 15pt;
+        padding: 2em;
+    }
+
+    .no-chats-text{
+        font-size: 14pt;
+    }
+
 </style>
 
-<div class="container d-flex flex-row mt-4 justify-content-center" id="id_chat_log_container">
+<div class="d-flex flex-row justify-content-center private-all-chats-banner-container">
+    <div class="d-flex flex-row private-all-chats-banner">
+        <h3 class="private-all-chats-banner-text">Private Chats</h3>
+    </div>
+</div>
+<div class="container d-flex flex-row justify-content-center" id="id_chat_log_container">
     <div class="d-flex flex-column" id="id_all_private_chats_container">
         <div class="d-flex flex-column" id="id_private_chats_log">
-            <h3>Chats</h3>
-            {% for chat in chats %}
-                {% if chat.last_message %}
-                    <a class="private-chat-link" href="{% url 'privatechat:chat' chat.id %}" id="private_chat_link_{{ chat.id }}">
-                        <div class="private-chats-room-message-container">
-                            <div class="private-chats-room-picture-container">
-                                {% if chat.users.all|length == 2 %}
-                                    {% for user in chat.users.all %}
-                                        {% if user != request.user %}
-                                            <img class="private-chats-room-pic" src="{{ user.profile_image.url }}" alt="chat room {{ chat.id }}'s profile image">
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                            <div class="private-chats-room-body-container">
-                                <div class="private-chats-room-headers-container">
-                                    <span class="private-chats-room-members" id="id_room_members_{{ chat.id }}">
-                                        {% if chat.users.all|length == 2 %}
-                                            {% for user in chat.users.all %}
-                                                {% if user != request.user %}
-                                                    {{ user.username }}
-                                                {% endif %}
-                                            {% endfor %}
-                                        {% elif chat.users.all|length > 2 %}
-                                            {% for user in chat.users.all %}
-                                                {% if user != request.user %}
-                                                    {{ user.username }}{% if not forloop.last %}, {% endif %}
-                                                {% endif %}
-                                            {% endfor %}
-                                        {% endif %}
-                                    </span>
-                                    {% if chat.unread_count > 0 %}
-                                    <span class="private-chats-room-last-date-sent" style="color: cyan; font-weight: bold;" id="id_room_last_sent_{{ chat.id }}">
-                                    {% else %}
-                                    <span class="private-chats-room-last-date-sent" id="id_room_last_sent_{{ chat.id }}">
+            {% if not chats %}
+                <div class="d-flex flex-row justify-content-center no-chats-text-container">
+                    <span class="no-chats-text">No private chats currently. Send a friend a message to start a private chat!</span>
+                </div>
+            {% else %}
+                {% for chat in chats %}
+                    {% if chat.last_message %}
+                        <a class="private-chat-link" href="{% url 'privatechat:chat' chat.id %}" id="private_chat_link_{{ chat.id }}">
+                            <div class="private-chats-room-message-container">
+                                <div class="private-chats-room-picture-container">
+                                    {% if chat.users.all|length == 2 %}
+                                        {% for user in chat.users.all %}
+                                            {% if user != request.user %}
+                                                <img class="private-chats-room-pic" src="{{ user.profile_image.url }}" alt="chat room {{ chat.id }}'s profile image">
+                                            {% endif %}
+                                        {% endfor %}
                                     {% endif %}
-                                        {{ chat.last_date|date:"j F Y" }}
-                                    </span>
                                 </div>
-                                <div class="private-chats-room-message-text-container" id="id_room_text_container_{{ chat.id }}">
-                                    <span class="private-chats-room-last-message" id="id_room_last_message_{{ chat.id }}">
-                                        {% if chat.last_user == userid %}
-                                            You: {{ chat.last_message }}
+                                <div class="private-chats-room-body-container">
+                                    <div class="private-chats-room-headers-container">
+                                        <span class="private-chats-room-members" id="id_room_members_{{ chat.id }}">
+                                            {% if chat.users.all|length == 2 %}
+                                                {% for user in chat.users.all %}
+                                                    {% if user != request.user %}
+                                                        {{ user.username }}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% elif chat.users.all|length > 2 %}
+                                                {% for user in chat.users.all %}
+                                                    {% if user != request.user %}
+                                                        {{ user.username }}{% if not forloop.last %}, {% endif %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        </span>
+                                        {% if chat.unread_count > 0 %}
+                                        <span class="private-chats-room-last-date-sent" style="color: cyan; font-weight: bold;" id="id_room_last_sent_{{ chat.id }}">
                                         {% else %}
-                                            {{ chat.last_message }}
+                                        <span class="private-chats-room-last-date-sent" id="id_room_last_sent_{{ chat.id }}">
                                         {% endif %}
-                                    </span>
-                                    {% if chat.unread_count > 0 %}
-                                    <span class="badge badge-pill badge-primary private-message-notification-count" id="id_room_message_notification_count_{{ chat.id }}">
-                                        {{ chat.unread_count }}
-                                    </span>
-                                    {% endif %}
+                                            {{ chat.last_date|date:"j F Y" }}
+                                        </span>
+                                    </div>
+                                    <div class="private-chats-room-message-text-container" id="id_room_text_container_{{ chat.id }}">
+                                        <span class="private-chats-room-last-message" id="id_room_last_message_{{ chat.id }}">
+                                            {% if chat.last_user == userid %}
+                                                You: {{ chat.last_message }}
+                                            {% else %}
+                                                {{ chat.last_message }}
+                                            {% endif %}
+                                        </span>
+                                        {% if chat.unread_count > 0 %}
+                                        <span class="badge badge-pill badge-primary private-message-notification-count" id="id_room_message_notification_count_{{ chat.id }}">
+                                            {{ chat.unread_count }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </a>
-                {% endif %}
-            {% endfor %}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
 </div>

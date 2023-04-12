@@ -5,6 +5,15 @@
 
 <style type="text/css">
 
+    .navbar{
+        background-image: linear-gradient(to bottom,#222 0,#3c3c3c 100%);
+        height: 65px;
+    }
+
+    .navbar-header {
+        margin-right: 6em;
+    }
+
     .navbar-brand{
         color: #ffffff;
         margin-right: 1rem;
@@ -20,7 +29,7 @@
     }
 
     .dropdown-menu{
-        background-color: white;
+        background-color: grey;
     }
 
     .material-symbols-outlined {
@@ -166,6 +175,7 @@
     .friend-notification-container{
         display: flex;
         flex-direction: row;
+        align-items: center;
         background-color: white;
         padding: 0.5em;
         border-radius: 10px;
@@ -223,18 +233,40 @@
         text-decoration: none !important;
     }
 
+    #id_friend_notifications:hover {
+        color: #c7abff;
+        cursor: pointer;
+    }
+
+    #id_profile_options:hover {
+        cursor: pointer;
+    }
+
+    .confirm-request-button {
+        background-color: #9779a8;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+        color: white;
+    }
+
+    .confirm-request-button:hover {
+        background-color: #b769e0;
+        color: white;
+    }
+
+    .dropdown-item {
+        font-weight: bold;
+    }
+
 </style>
 <nav class="navbar navbar-default navbar-inverse shadow-sm">
     <div class="container-fluid">
-        <div class="d-flex flex-row justify-content-start" id="id_navbar_left_1">
-            <div class="navbar-header mr-2">
+        <div class="d-flex flex-row justify-content-space-between" id="id_navbar_left_1">
+            <div class="navbar-header">
                 <a class="navbar-brand" href="/">{{ settings.APP_NAME }}</a>
             </div>
             <div class="d-flex flex-row" id="id_navbar_left-2">
-                <div class="flex-item-1 ml-5 mr-2">
-                    <a href="{% url 'publicchat:all' %}">Public Chatroom</a>
-                </div>
-                <div class="flex-item-1 mr-2 other-chats-div">
+                <div class="flex-item-1 other-chats-div">
                     {% if user.is_authenticated %}
                     <a href="{% url 'privatechat:all' request.user.id %}" class="other-chats-link">Other Chats</a>
                         {% if unread_message_notifications > 0 %}
@@ -267,27 +299,27 @@
                                     {% for friend_notification in active_friend_notifications %}
                                         {% if friend_notification.received_request %}
                                             <div class="friend-notification-container" id="friend_notification_container_{{ friend_notification.id }}">
-                                                <a class="friend-request-notification-profile-link" href="/account/{{ friend_notification.sender.id }}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');">
-                                                    <img class="friend-notification-pic" src="{{ friend_notification.sender.profile_image.url }}" alt="notification sender {{ friend_notification.sender.username }}'s profile image">
+                                                <a class="d-flex friend-request-notification-profile-link" href="{% url 'account:profile' friend_notification.sender.id %}" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');">
+                                                    <img class="d-flex friend-notification-pic" src="{{ friend_notification.sender.profile_image.url }}" alt="notification sender {{ friend_notification.sender.username }}'s profile image">
                                                 </a>
-                                                <a class="friend-request-notification-profile-link" href="/account/{{ friend_notification.sender.id }}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');">
-                                                    <span class="friend-notification-sender" id="id_friend_notification_sender_username_{{ friend_notification.id }}">{{ friend_notification.sender.username }} </span>
+                                                <a class="d-flex friend-request-notification-profile-link" href="{% url 'account:profile' friend_notification.sender.id %}" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');">
+                                                    <span class="d-flex friend-notification-sender" id="id_friend_notification_sender_username_{{ friend_notification.id }}">{{ friend_notification.sender.username }} </span>
                                                 </a>
-                                                <span class="friend-notification-message">sent you a friend request</span>
-                                                <a class="btn btn-primary confirm-friend-request friend-request-notification-option" id="id_confirm_friend_request" data-request-url="friends/friend_request_accept/" 
+                                                <span class="d-flex friend-notification-message">sent you a friend request</span>
+                                                <a class="d-flex btn confirm-request-button confirm-friend-request friend-request-notification-option" id="id_confirm_friend_request" data-request-url="{% url 'friends:accept_friend_request' %}" 
                                                 data-friend-request-id="{{ friend_notification.friend_request_id }}" onclick='acceptFriendRequest(this)'>Confirm</a>
-                                                <a class="btn btn-secondary decline-friend-request friend-request-notification-option" 
-                                                id="id_decline_friend_request" data-request-url="friends/friend_request_decline/" data-friend-request-id="{{ friend_notification.friend_request_id }}" onclick='declineFriendRequest(this)'>Decline</a>
+                                                <a class="d-flex btn btn-secondary decline-friend-request friend-request-notification-option" 
+                                                id="id_decline_friend_request" data-request-url="{% url 'friends:decline_friend_request' %}" data-friend-request-id="{{ friend_notification.friend_request_id }}" onclick='declineFriendRequest(this)'>Decline</a>
                                             </div>
                                         {% elif friend_notification.accepted_request %}
                                             <div class="friend-notification-container" id="friend_notification_container_{{ friend_notification.id }}">
-                                                <a class="friend-request-notification-profile-link" href="/account/{{ friend_notification.sender.id }}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');">
-                                                    <img class="friend-notification-pic" src="{{ friend_notification.sender.profile_image.url }}" alt="notification sender {{ friend_notification.sender.username }}'s profile image">
+                                                <a class="d-flex friend-request-notification-profile-link" href="{% url 'account:profile' friend_notification.sender.id %}" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');">
+                                                    <img class="d-flex friend-notification-pic" src="{{ friend_notification.sender.profile_image.url }}" alt="notification sender {{ friend_notification.sender.username }}'s profile image">
                                                 </a>
-                                                <a class="friend-request-notification-profile-link" href="/account/{{ friend_notification.sender.id }}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');">
-                                                    <span class="friend-notification-sender" id="id_friend_notification_sender_username_{{ friend_notification.id }}">{{ friend_notification.sender.username }} </span>
+                                                <a class="d-flex friend-request-notification-profile-link" href="{% url 'account:profile' friend_notification.sender.id %}" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');">
+                                                    <span class="d-flex friend-notification-sender" id="id_friend_notification_sender_username_{{ friend_notification.id }}">{{ friend_notification.sender.username }} </span>
                                                 </a>
-                                                <span class="friend-notification-message">accepted your friend request</span>
+                                                <span class="d-flex friend-notification-message">accepted your friend request</span>
                                             </div>
                                         {% endif %}
                                     {% endfor %}
@@ -300,7 +332,7 @@
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" src="{{ request.user.profile_image.url }}" alt="default user image" height="30" width="30">
                         <div class="dropdown-menu" style="right: 0; left: auto;" aria-labelledby="id_profile_options">
                             <a class="dropdown-item" href="{% url 'account:profile' request.user.id %}">Account</a>
-                            <a class="dropdown-item" href="{% url 'logout' %}?next={% url 'home:all' %}">Logout</a>
+                            <a class="dropdown-item" href="{% url 'logout' %}?next={% url 'publicchat:all' %}">Logout</a>
                         </div>
                     </div>
                 </div>
@@ -311,7 +343,7 @@
             <div class="navbar-right">
                 <ul class="navbar-nav ml-auto">
                     <li>
-                        <a href="{% url 'login' %}?next={% url 'home:all' %}">Login</a>
+                        <a href="{% url 'login' %}?next={% url 'publicchat:all' %}">Login</a>
                     </li>
                 </ul>
             </div>
@@ -323,10 +355,95 @@
     </div>
 </nav>
 
+{{ request.user.id|json_script:"userid" }}
 
 <script type="text/javascript">
 
+    var requestUserid = JSON.parse(document.getElementById('userid').textContent);
+    console.log(requestUserid);
+
     var token = "{{ csrf_token }}";
+
+    $(document).ready(function() {
+    // Set initial user activity time
+    var user_activity_time = new Date().getTime();
+    var userStatus = document.getElementById(`id_user_${requestUserid}_online_status`);
+    var requestInProgress = false;
+
+        // Update user activity time on mousemove event
+        $(document).mousemove(function() {
+            user_activity_time = new Date().getTime();
+
+            if (userStatus !== null) {
+                if (!requestInProgress) {
+                    if (userStatus.classList.contains('user-away-circle') || userStatus.classList.contains('user-offline-circle')) {
+                        requestInProgress = true;
+                        $.ajax({
+                            url: "notifications/set_user_status_online/",
+                            method: "POST",
+                            data: {status: "online", "csrfmiddlewaretoken": token,},
+                            success: function(response) {
+                            console.log("User status updated to 'away'.");
+                            },
+                            error: function(error) {
+                            console.log("Error updating user status: " + error);
+                            },
+                            complete: function() {
+                                requestInProgress = false;
+                            }
+                        });
+                    }
+                }
+            }
+        });
+
+        // Update user activity time on keydown event
+        $(document).keydown(function() {
+            user_activity_time = new Date().getTime();
+
+            if (userStatus !== null) {
+                if (!requestInProgress) {
+                    if (userStatus.classList.contains('user-away-circle') || userStatus.classList.contains('user-offline-circle')) {
+                        requestInProgress = true;
+                        $.ajax({
+                            url: "notifications/set_user_status_online/",
+                            method: "POST",
+                            data: {status: "online", "csrfmiddlewaretoken": token,},
+                            success: function(response) {
+                            console.log("User status updated to 'away'.");
+                            },
+                            error: function(error) {
+                            console.log("Error updating user status: " + error);
+                            },
+                            complete: function() {
+                                requestInProgress = false;
+                            }
+                        });
+                    }
+                }
+            }
+        });
+
+        // Check user activity time every minute and update status if necessary
+        setInterval(function() {
+            var now = new Date().getTime();
+            var idle_time = now - user_activity_time;
+            if (idle_time > 20 * 60 * 1000) { 
+                // User has been idle for more than 20 mins, update status to "away"
+                $.ajax({
+                    url: "notifications/set_user_status_away/",
+                    method: "POST",
+                    data: {status: "away", "csrfmiddlewaretoken": token,},
+                    success: function(response) {
+                    console.log("User status updated to 'away'.");
+                    },
+                    error: function(error) {
+                    console.log("Error updating user status: " + error);
+                    }
+                });
+            }
+        }, 60000); // Check every 60 secs
+    });
 
     function runSearch(){
         var query = document.getElementById("id_search_bar").value;
@@ -342,6 +459,8 @@
     var otherChatsDiv = document.querySelector('.other-chats-div');
     var friendNotificationDropdown = document.getElementById('id_friend_notifications_dropdown');
     var oldNotification;
+
+    var fullUrlOrigin = window.location.origin
 
     // for handling iso format date conversions
     var options = {day: 'numeric', month: 'long', year: 'numeric'};
@@ -366,11 +485,18 @@
             if (statusElement !== null) {
                 if (onlineStatus == 'connected') {
                     statusElement.classList.remove('user-offline-circle');
+                    statusElement.classList.remove('user-away-circle');
                     statusElement.classList.add('user-online-circle');
                 }
                 else if (onlineStatus == 'disconnected') {
                     statusElement.classList.remove('user-online-circle');
+                    statusElement.classList.remove('user-away-circle');
                     statusElement.classList.add('user-offline-circle');
+                }
+                else if (onlineStatus == "away") {
+                    statusElement.classList.remove('user-offline-circle');
+                    statusElement.classList.remove('user-online-circle');
+                    statusElement.classList.add('user-away-circle');
                 }
             }
         }
@@ -388,6 +514,8 @@
             let data = JSON.parse(e.data);
             console.log("NOTIFICATION!")
             console.log(data);
+
+            console.log(window.location.origin);
 
             var timestampAsObj = new Date(data.timestamp);
             var timestampFormattedAsDate = formatter.format(timestampAsObj);
@@ -411,18 +539,18 @@
                 friendNotificationDiv.classList.add('friend-notification-container');
                 friendNotificationDiv.setAttribute("id", `friend_notification_container_${data.notification_id}`);
                 if (data.status == "friend request received") {
-                    friendNotificationDiv.innerHTML = `<a class="friend-request-notification-profile-link" href="/account/${data.sender_id}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');"><img class="friend-notification-pic" src="${data.profile_pic}" 
-                            alt="notification sender ${data.sender}'s profile image"></a><a class="friend-request-notification-profile-link" href="/account/${data.sender_id}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');">
-                            <span class="friend-notification-sender" id="id_friend_notification_sender_username_${data.notification_id}">${data.sender} </span></a><span class="friend-notification-message">sent you a friend request</span>
-                            <a class="btn btn-primary confirm-friend-request friend-request-notification-option" id="id_confirm_friend_request" data-request-url="friends/friend_request_accept/" 
-                            data-friend-request-id="${data.friend_request_id}" onclick='acceptFriendRequest(this)'>Confirm</a><a class="btn btn-secondary decline-friend-request friend-request-notification-option" 
-                            id="id_decline_friend_request" data-request-url="friends/friend_request_decline/" data-friend-request-id="${data.friend_request_id}" onclick='declineFriendRequest(this)'>Decline</a>`
+                    friendNotificationDiv.innerHTML = `<a class="d-flex friend-request-notification-profile-link" href="${fullUrlOrigin}/account/${data.sender_id}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');"><img class="d-flex friend-notification-pic" src="${data.profile_pic}" 
+                            alt="notification sender ${data.sender}'s profile image"></a><a class="d-flex friend-request-notification-profile-link" href="${fullUrlOrigin}/account/${data.sender_id}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');">
+                            <span class="d-flex friend-notification-sender" id="id_friend_notification_sender_username_${data.notification_id}">${data.sender} </span></a><span class="d-flex friend-notification-message">sent you a friend request</span>
+                            <a class="d-flex btn confirm-request-button confirm-friend-request friend-request-notification-option" id="id_confirm_friend_request" data-request-url="${fullUrlOrigin}/friends/friend_request_accept/" 
+                            data-friend-request-id="${data.friend_request_id}" onclick='acceptFriendRequest(this)'>Confirm</a><a class="d-flex btn btn-secondary decline-friend-request friend-request-notification-option" 
+                            id="id_decline_friend_request" data-request-url="${fullUrlOrigin}/friends/friend_request_decline/" data-friend-request-id="${data.friend_request_id}" onclick='declineFriendRequest(this)'>Decline</a>`
                     friendNotificationDropdown.insertBefore(friendNotificationDiv, friendNotificationDropdown.firstChild);
                 } else if (data.status == "friend request accepted") {
-                    friendNotificationDiv.innerHTML = `<a class="friend-request-notification-profile-link" href="/account/${data.sender_id}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');"><img class="friend-notification-pic"
-                            src="${data.profile_pic}" alt="notification sender ${data.sender}'s profile image"></a><a class="friend-request-notification-profile-link" 
-                            href="/account/${data.sender_id}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');"><span class="friend-notification-sender" id="id_friend_notification_sender_username_${data.notification_id}">${data.sender} </span></a>
-                            <span class="friend-notification-message">accepted your friend request</span>`
+                    friendNotificationDiv.innerHTML = `<a class="d-flex friend-request-notification-profile-link" href="${fullUrlOrigin}/account/${data.sender_id}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');"><img class="d-flex friend-notification-pic"
+                            src="${data.profile_pic}" alt="notification sender ${data.sender}'s profile image"></a><a class="d-flex friend-request-notification-profile-link" 
+                            href="${fullUrlOrigin}/account/${data.sender_id}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');"><span class="d-flex friend-notification-sender" id="id_friend_notification_sender_username_${data.notification_id}">${data.sender} </span></a>
+                            <span class="d-flex friend-notification-message">accepted your friend request</span>`
                     friendNotificationDropdown.insertBefore(friendNotificationDiv, friendNotificationDropdown.firstChild);
                 }
                 updateFriendNotifications();
@@ -495,55 +623,55 @@
 
 
     function updateNotifications() {
-    $.ajax({
-        type: "GET",
-        url: '/notifications/update_notifications/',
-        success: function (data) {
-            var unreadNotifications = data.unread_notifications;
-            if (unreadNotifications > 0) {
-                let messageNotificationCount = document.querySelector('.message-notification-count');
-                if (messageNotificationCount !== null) {
-                    messageNotificationCount.textContent = unreadNotifications;
-                } else {
-                    let notificationsSpan = document.createElement('span');
-                    notificationsSpan.classList.add('badge');
-                    notificationsSpan.classList.add('badge-pill');
-                    notificationsSpan.classList.add('badge-danger');
-                    notificationsSpan.classList.add('message-notification-count');
-                    notificationsSpan.textContent = unreadNotifications;
-                    otherChatsDiv.appendChild(notificationsSpan);
+        $.ajax({
+            type: "GET",
+            url: '/notifications/update_notifications/',
+            success: function (data) {
+                var unreadNotifications = data.unread_notifications;
+                if (unreadNotifications > 0) {
+                    let messageNotificationCount = document.querySelector('.message-notification-count');
+                    if (messageNotificationCount !== null) {
+                        messageNotificationCount.textContent = unreadNotifications;
+                    } else {
+                        let notificationsSpan = document.createElement('span');
+                        notificationsSpan.classList.add('badge');
+                        notificationsSpan.classList.add('badge-pill');
+                        notificationsSpan.classList.add('badge-danger');
+                        notificationsSpan.classList.add('message-notification-count');
+                        notificationsSpan.textContent = unreadNotifications;
+                        otherChatsDiv.appendChild(notificationsSpan);
+                    }
                 }
             }
-        }
-    });
+        });
     }
 
     function updateFriendNotifications() {
-    $.ajax({
-        type: "GET",
-        url: '/notifications/update_friend_notifications/',
-        success: function (data) {
-            var unreadNotifications = data.unread_friend_notifications;
-            var messageNotificationCount = document.querySelector('.friend-notification-count');
-            var friendNotificationDiv = document.getElementById('id_friend_notifications_toggle');
-            if (unreadNotifications > 0) {
-                if (messageNotificationCount !== null) {
-                    messageNotificationCount.textContent = unreadNotifications;
-                } else {
-                    let notificationsSpan = document.createElement('span');
-                    notificationsSpan.classList.add('badge');
-                    notificationsSpan.classList.add('badge-pill');
-                    notificationsSpan.classList.add('badge-danger');
-                    notificationsSpan.classList.add('friend-notification-count');
-                    notificationsSpan.textContent = unreadNotifications;
-                    friendNotificationDiv.appendChild(notificationsSpan);
+        $.ajax({
+            type: "GET",
+            url: '/notifications/update_friend_notifications/',
+            success: function (data) {
+                var unreadNotifications = data.unread_friend_notifications;
+                var messageNotificationCount = document.querySelector('.friend-notification-count');
+                var friendNotificationDiv = document.getElementById('id_friend_notifications_toggle');
+                if (unreadNotifications > 0) {
+                    if (messageNotificationCount !== null) {
+                        messageNotificationCount.textContent = unreadNotifications;
+                    } else {
+                        let notificationsSpan = document.createElement('span');
+                        notificationsSpan.classList.add('badge');
+                        notificationsSpan.classList.add('badge-pill');
+                        notificationsSpan.classList.add('badge-danger');
+                        notificationsSpan.classList.add('friend-notification-count');
+                        notificationsSpan.textContent = unreadNotifications;
+                        friendNotificationDiv.appendChild(notificationsSpan);
+                    }
+                } else if (unreadNotifications == 0 && messageNotificationCount !== null) {
+                    friendNotificationDiv.removeChild(messageNotificationCount);
                 }
-            } else if (unreadNotifications == 0 && messageNotificationCount !== null) {
-                friendNotificationDiv.removeChild(messageNotificationCount);
-            }
 
-        }
-    });
+            }
+        });
     }
 
     friendNotifications = document.querySelector('#id_friend_notifications');
@@ -566,6 +694,19 @@
             }
         }
     }
+
+    window.addEventListener('beforeunload', function (e) {
+        requestData = {
+            "csrfmiddlewaretoken": token,
+        }
+        // Send an AJAX request to update the user's status to offline
+        $.ajax({
+            url: '/notifications/set_user_status_offline/',
+            method: 'POST',
+            data: requestData,
+            async: false
+        });
+    });
 
 </script>
 

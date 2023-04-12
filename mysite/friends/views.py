@@ -15,7 +15,7 @@ class FriendListView(View):
 
     def get(self, request, pk):
         user = request.user
-        if user.is_authenticated:
+        if request.user.is_authenticated:
             account = get_object_or_404(Account, id=pk)
 
             # if no friend list exists for account - create one so that their friend list page can still be accessed
@@ -31,7 +31,7 @@ class FriendListView(View):
             ctx = {'friend_list': friend_list, 'account': account, 'user': user}
             return render(request, self.template_name, ctx)
         else:
-            redirect("login")
+            return redirect("login")
             
 
 class FriendRequestsView(View):
@@ -39,7 +39,7 @@ class FriendRequestsView(View):
 
     def get(self, request, pk):
         user = request.user
-        if user.is_authenticated:
+        if request.user.is_authenticated:
             account = get_object_or_404(Account, id=pk)
             if account != user:
                 raise PermissionDenied
@@ -48,7 +48,7 @@ class FriendRequestsView(View):
                 ctx = {'friend_requests': friend_requests}
                 return render(request, self.template_name, ctx)
         else:
-            redirect("login")
+            return redirect("login")
 
 
 def is_friend_request_active(sender, receiver):
@@ -91,7 +91,7 @@ def send_friend_request(request, *args, **kwargs):
         else:
             payload['response'] = 'Unable to send friend request'
     else:
-        payload['response'] = 'You must be authenticated to send friend request'
+        return redirect("login")
     return HttpResponse(json.dumps(payload), content_type="application/json")
                 
 
@@ -101,7 +101,6 @@ def accept_friend_request(request, *args, **kwargs):
     payload = {}
     if request.method == "POST" and user.is_authenticated:
         received_friend_request_id = request.POST.get("received_friend_request_id")
-        print(received_friend_request_id)
         if received_friend_request_id:
             try:
                 received_friend_request = FriendRequest.objects.get(pk=received_friend_request_id)
@@ -127,12 +126,11 @@ def accept_friend_request(request, *args, **kwargs):
                 else:
                     payload['response'] = "error - not your friend request to accept"
             except Exception as e:
-                print(str(e))
-                payload['response'] = "unexpected error occurred"
+                payload['response'] = f"unexpected error occurred: {str(e)}"
         else:
             payload['response'] = "request id not found"
     else:
-        payload['response'] = "must be authenticated to accept request"
+        return redirect("login")
     return HttpResponse(json.dumps(payload), content_type="application/json")
 
 
@@ -141,7 +139,6 @@ def decline_friend_request(request, *args, **kwargs):
     payload = {}
     if request.method == "POST" and user.is_authenticated:
         received_friend_request_id = request.POST.get("received_friend_request_id")
-        print(received_friend_request_id)
         if received_friend_request_id:
             try:
                 received_friend_request = FriendRequest.objects.get(pk=received_friend_request_id)
@@ -158,19 +155,17 @@ def decline_friend_request(request, *args, **kwargs):
                         try:
                             received_friend_request.declined()
                         except Exception as e:
-                            print(str(e))
-                            payload['response'] = "unable to decline request"
+                            payload['response'] = f"unable to decline request: {str(e)}"
                         else:
                             payload['response'] = "success"
                 else:
                     payload['response'] = "error - not your friend request to decline"
             except Exception as e:
-                print(str(e))
-                payload['response'] = "unexpected error occurred"
+                payload['response'] = f"unexpected error occurred: {str(e)}"
         else:
             payload['response'] = "request id not found"
     else:
-        payload['response'] = "must be authenticated to decline request"
+        return redirect("login")
     return HttpResponse(json.dumps(payload), content_type="application/json")
 
 
@@ -204,7 +199,7 @@ def cancel_friend_request(request, *args, **kwargs):
         else:
             payload['response'] = "user id not provided"
     else:
-        payload['response'] = "must be authenticated to cancel a friend request"
+        return redirect("login")
     return HttpResponse(json.dumps(payload), content_type="application/json")   
 
 
@@ -220,22 +215,17 @@ def unfriend(request, *args, **kwargs):
                 friend_list.remove_friend(account)
                 payload['response'] = "success"
                 try:
-                    print(account.email)
-                    print(user.email)
                     users = sorted(list((account.email, user.email)))
-                    print(users)
                     title = " ".join(users) + " private chat"
-                    print(title)
                     privatechat = PrivateChat.objects.get(title=title)
                     privatechat.delete()
                 except PrivateChat.DoesNotExist:
                     print("No private chat for this combination of users")
             except Exception as e:
-                print(str(e))
-                payload['response'] = "something went wrong"
+                payload['response'] = f"something went wrong {str(e)}"
         else:
             payload['response'] = "user id not provided"
     else:
-        payload['response'] = "must be authenticated to remove friend"
+        return redirect("login")
     return HttpResponse(json.dumps(payload), content_type="application/json")
         

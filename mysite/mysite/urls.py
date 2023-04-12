@@ -23,11 +23,10 @@ from django.views.static import serve
 
 
 urlpatterns = [
-    path('', include('home.urls')),
+    path('', include('publicchat.urls')),
     path('admin/', admin.site.urls),
     path('account/', include('account.urls')),
     path('friends/', include('friends.urls')),
-    path('publicchat/', include('publicchat.urls')),
     path('privatechat/', include('privatechat.urls')),
     path('notifications/', include('notifications.urls')),
     path('accounts/', include('django.contrib.auth.urls')),

@@ -1,5 +1,4 @@
 import json
-import datetime
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -150,22 +149,24 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
 
         print(status)
 
-        online = False
+        online_status = "offline"
 
         if status == "connected":
-            online = True
+            online_status = "online"
+        elif status == "away":
+            online_status == "away"
 
-        await self.set_user_status(user_id, online)
+        await self.set_user_status(user_id, online_status)
 
         await self.send(text_data=json.dumps({'user_id': user_id, 'status': status}))
 
 
     @database_sync_to_async
-    def set_user_status(self, user_id, online):
+    def set_user_status(self, user_id, online_status):
         print("set_user_status called")
-        print(online)
+        print(online_status)
         user = Account.objects.get(pk=user_id)
-        user.online = online
+        user.online_status = online_status
         user.save()
 
 
@@ -181,9 +182,6 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         print(self.channel_name)
         print("online status disconnect channel name type: ")
         print(type(self.channel_name))
-
-        # await self.send_userid({'user_id': user_id,
-        #         'status': 'disconnected'})
 
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 

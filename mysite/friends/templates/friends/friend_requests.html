@@ -5,11 +5,11 @@
 <style type="text/css">
 
     .card{
-        background-color: grey;
+        background-color: #303333;
     }
 
     #id_account_card{
-        background-color: lightgrey;
+        background-color: #4b4b4d;
         width: 100%;
     }
 
@@ -30,6 +30,27 @@
         width: 100%;
     }
 
+    .account-profile-link {
+        text-decoration: none !important;
+    }
+
+    .account-username {
+        color: white;
+        font-size: 20pt;
+    }
+
+    .confirm-request-button {
+        background-color: #9779a8;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+        color: white;
+    }
+
+    .confirm-request-button:hover {
+        background-color: #b769e0;
+        color: white;
+    }
+
 </style>
 
 <div class="container">
@@ -42,7 +63,7 @@
                     <div class="d-flex flex-row flex-grow-1 align-items-center">
                         <a class="account-profile-link" href="{% url 'account:profile' pk=friend_request.sender.id %}">
                             <div class="card-image m-2">
-                                <img class="img-fluid profile-img rounded-circle" style="border: 1px solid white;" src="{{ friend_request.sender.profile_image.url }}" alt="Profile image">
+                                <img class="img-fluid profile-img rounded-circle" style="border: 1px solid white; background-color: white;" src="{{ friend_request.sender.profile_image.url }}" alt="Profile image">
                             </div>
                         </a>
                         <a class="account-profile-link" href="{% url 'account:profile' pk=friend_request.sender.id %}">
@@ -54,7 +75,7 @@
                         </a>
                         <div class="d-flex flex-row card-right flex-grow-1 justify-content-end mx-2">
                             <div class="d-flex flex-row confirm-or-decline-request-container justify-content-end p-3">
-                                <a class="btn btn-primary confirm-friend-request mr-1" id="id_confirm_friend_request" data-request-url="{% url 'friends:accept_friend_request' %}" 
+                                <a class="btn confirm-request-button confirm-friend-request mr-1" id="id_confirm_friend_request" data-request-url="{% url 'friends:accept_friend_request' %}" 
                                 data-friend-request-id="{{ friend_request.id }}" onclick='acceptFriendRequest(this)'>Confirm</a>
                                 <a class="btn btn-secondary decline-friend-request ml-1" id="id_decline_friend_request" data-request-url="{% url 'friends:decline_friend_request' %}" 
                                 data-friend-request-id="{{ friend_request.id }}" onclick='declineFriendRequest(this)'>Decline</a>

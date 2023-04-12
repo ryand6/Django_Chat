@@ -11,8 +11,10 @@
     } 
 
     #id_chat_log_container{
-        height: calc(100vh - 180px);
+        height: calc(100vh - 125px);
         flex: 1;
+        width: 100%;
+        max-width: 2000px;
         padding-left: 0;
         padding-right: 0;
     }
@@ -20,19 +22,16 @@
     #id_all_private_chats_container{
         width: 30%;
         height: 100%;
-        margin-right: 2em;
     }
 
     .chat-window{
         height: 100%;
         width: 70%;
-        background-color: grey;
+        background-color: #303333;
     }
 
     #id_private_chats_log{
-        background-color: grey;
-        padding-left: 1.5em;
-        padding-right: 1.5em;
+        background-color: #272729;
         overflow-x: hidden;
         overflow-y: visible;
         height: 100%;
@@ -44,16 +43,16 @@
         align-self: flex-start;
         flex: 1;
         width: 100%;
-        padding-left: 4em;
-        padding-right: 4em;
-        padding-bottom: 4em;
+        padding-bottom: 2em;
+        padding-top: 1em;
     }
 
     #id_message_bar{
-        height: 50px;
+        height: 80px;
         width: 100%;
         -ms-flex-align: stretch;
-        background-color: darkgray;
+        background-color: #4b4b4d;
+        align-items: center;
     }
 
     .chatroom-message-user-pic{
@@ -81,15 +80,26 @@
     .chatroom-message-container{
         display: flex;
         flex-direction: row;
+        padding-left: 4em;
+        transition: background-color 0.1s ease-in-out;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+
+    .chatroom-message-container:hover {
+        background-color: #232424;
     }
 
     .private-chats-room-message-container{
         display: flex;
         flex-direction: row;
-        background-color: black;
+        background-color: #272729;
         padding: 0.5em;
-        border-radius: 10px;
-        margin-top: 1em;
+        transition: background-color 0.1s ease-in-out;
+    }
+
+    .private-chats-room-message-container:hover {
+        background-color: #4b4b4d;
     }
 
     .chatroom-picture-container{
@@ -194,14 +204,17 @@
     .date-separator{
         margin-top: 2em;
         margin-bottom: 2em;
+        margin-left: 4em;
+        margin-right: 4em;
+        white-space: nowrap; 
     }
 
     .user-online-circle{
         position: absolute;
         bottom: 0;
         right: 0;
-        width: 13px;
-        height: 13px;
+        width: 15px;
+        height: 15px;
         border-radius: 50%;
         background-color: green; 
         box-shadow: 0px 1px 3px rgba(0,0,0,0.3);
@@ -214,21 +227,14 @@
         position: absolute;
         bottom: 0;
         right: 0;
-        width: 13px;
-        height: 13px;
+        width: 15px;
+        height: 15px;
         border-radius: 50%;
         background-color: lightgrey; 
         box-shadow: 0px 1px 3px rgba(0,0,0,0.3);
         z-index: 1;
         border: 1px;
         border-color: white;
-    }
-
-    .chatroom-message-body-code{
-        background-color: black;
-        padding: 2em;
-        margin-top: 1em;
-        margin-bottom: 1em;
     }
 
     .private-chats-room-last-date-sent{
@@ -257,12 +263,96 @@
         margin-right: 1em;
     }
 
+    .private-chatroom-banner{
+        background-color: #242729;
+        height: 80px;
+        width: 100%;
+        align-items: center;
+    }
+
+    .private-chatroom-banner-title{
+        font-weight: bold;
+        font-size: 16pt;
+        color: white;
+    }
+
+    .private-chatroom-recipient-profile-link-image{
+        text-decoration: none !important;
+    }
+
+    .private-chatroom-recipient-profile-link-title{
+        text-decoration: none !important;
+    }
+
+    .private-chatroom-recipient-image{
+        border: 1px;
+        border-color: white;
+        display: block;
+        border-radius: 50%;
+        height: 45px;
+        width: 45px;
+        background-color: white;
+    }
+
+    .private-chatroom-banner-picture-container{
+        position: relative;
+        height:47px;
+        width: 47px;
+        margin-left: 5em;
+    }
+
+    #chat_message_submit {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #6d6f73;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+    }
+
+    #chat_message_submit:hover {
+        background-color: #9779a8;
+    }
+
+    .private-chatroom-all-chats-banner{
+        background-color: #1e1e1f;
+        height: 80px;
+        width: 100%;
+        align-items: center;
+    }
+
+    .private-chatroom-all-chats-banner-title{
+        font-weight: bold;
+        font-size: 20pt;
+    }
+
+    .all-chats-hr{
+        border: 0;
+        clear:both;
+        display:block;
+        width: 95%;               
+        background-color: #363638;
+        height: 1px;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
 </style>
 
-<div class="container d-flex flex-row mt-4" id="id_chat_log_container">
+<div class="container d-flex flex-row" id="id_chat_log_container">
     <div class="d-flex flex-column" id="id_all_private_chats_container">
         <div class="d-flex flex-column" id="id_private_chats_log">
-            <h3>Chats</h3>
+            <div class="d-flex flex-row justify-content-center private-chatroom-all-chats-banner-container">
+                <div class="d-flex flex-row private-chatroom-all-chats-banner">
+                    <span class="ml-5 mr-2 private-chatroom-all-chats-banner-title">Chats</span>
+                </div>
+            </div>
+            {% if chats %}
+            <hr class="all-chats-hr">
+            {% endif %}
             {% for chat in chats %}
                 {% if chat.last_message %}
                     <a class="private-chat-link" href="{% url 'privatechat:chat' chat.id %}" id="private_chat_link_{{ chat.id }}">
@@ -318,11 +408,47 @@
                             </div>
                         </div>
                     </a>
+                    <hr class="all-chats-hr">
                 {% endif %}
             {% endfor %}
         </div>
     </div>
     <div class="d-flex flex-column justify-content-center chat-window" id="id_chat_window">
+        <div class="d-flex flex-row justify-content-center private-chatroom-banner-container">
+            <div class="d-flex flex-row private-chatroom-banner">
+                <div class="d-flex flex-column private-chatroom-banner-picture-container">
+                    {% if chat_users|length == 2 %}
+                        {% for user in chat_users %}
+                            {% if user != request.user %}
+                            <a class="private-chatroom-recipient-profile-link-image" href="{% url 'account:profile' pk=user.id %}">
+                                <img class="private-chatroom-recipient-image" src="{{ user.profile_image.url }}" alt="{{ user.username }}'s profile image">
+                                {% if user.online_status == "online" %}
+                                <div class="user-online-circle" id="id_user_{{ user.id }}_online_status"></div>
+                                {% elif user.online_status == "offline" %}
+                                <div class="user-offline-circle" id="id_user_{{ user.id }}_online_status"></div>
+                                {% elif user.online_status == "away" %}
+                                <div class="user-away-circle" id="id_user_{{ user.id }}_online_status"></div>
+                                {% endif %}
+                            </a>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div class="d-flex flex-column private-chatroom-banner-title-container">
+                    {% if chat_users|length == 2 %}
+                        {% for user in chat_users %}
+                            {% if user != request.user %}
+                                <a class="private-chatroom-recipient-profile-link-title" href="{% url 'account:profile' pk=user.id %}">
+                                    <span class="ml-3 private-chatroom-banner-title">
+                                        {{ user.username }}
+                                    </span>
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
         <div class="d-flex flex-column" id="chat_log">
             {% for message in recent_messages %}
             {% with prev_message=recent_messages|previous:forloop.counter0 %}
@@ -385,8 +511,12 @@
             {% endfor %}
         </div>
         <div class="d-flex flex-row p-2" id="id_message_bar">
-            <input class="mx-2" id="chat_message_input"></input>
-            <input id="chat_message_submit" type="button" value="Send">
+            <input class="mx-4" id="chat_message_input" placeholder="Write message..."></input>
+            <span class="mr-2" id="chat_message_submit">
+                <span class="material-symbols-outlined">
+                    send
+                </span>
+            </span>
         </div>
     </div>
 </div>

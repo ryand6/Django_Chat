@@ -8,7 +8,7 @@
     }
 
     .card{
-        background-color: grey;
+        background-color: #272729;
     }
 
     .fa-circle{
@@ -16,6 +16,7 @@
         text-shadow: 0 0 3px #000;
         top: 5%;
         left: 30%;
+        color: #4b4b4d;
     }
 
     .fa-pencil{
@@ -99,11 +100,39 @@
         background-color: white;
     }
 
+    .account-button {
+        background-color: #6d6f73;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+        font-weight: bold;
+        color: white;
+    }
+
+    .account-button:hover {
+        background-color: #9779a8;
+        color: white;
+    }
+
+    #id_friend_list_icon {
+        color: white;
+    }
+
+    .friend-list-text {
+        color: white;
+    }
+
+    #id_friend_requests_icon {
+        color: white;
+    }
+
+    .friend-request-text {
+        color: white;
+    }
 
 </style>
 <div class="container-fluid mt-5">
     <div class="d-flex flex-row justify-content-center flex-wrap align-items-start">
-        <div class="card profile-card m-2">
+        <div class="card profile-card m-1">
             <div class="card-body">
                 {% if is_self %}
                     <div class="d-flex flex-row justify-content-end">
@@ -135,11 +164,11 @@
                         {% if not is_self %}
                             {% if is_friend %}
                             <!--add javascript onclick function to div-->
-                            <div class="d-flex flex-row align-items-center btn btn-primary m-2 px-2" id="id_send_private_message">
-                                <a class="send-friend-private-message" data-friend-id="{{ account.id }}" data-request-url="{% url 'privatechat:create_chat' %}"
+                            <div class="d-flex flex-row align-items-center btn account-button m-2 px-2" id="id_send_private_message">
+                                <a class="d-flex send-friend-private-message" data-friend-id="{{ account.id }}" data-request-url="{% url 'privatechat:create_chat' %}"
                                 onclick='sendFriendMessage(this);'>
-                                    <span class="material-symbols-outlined">sms</span>
-                                    <span class="message-btn-text m-auto pl-2">Message</span>
+                                    <span class="d-flex material-symbols-outlined">sms</span>
+                                    <span class="d-flex message-btn-text m-auto pl-2">Message</span>
                                 </a>
                             </div>
                             {% else %}
@@ -148,7 +177,7 @@
                                     <span class="received-friend-request-text align-items-center mr-2 mb-1">{{ account.username }} has sent you a friend request</span>
                                 </div>
                                 <div class="d-flex flex-row align-items-center">
-                                    <a class="btn btn-primary confirm-friend-request mr-1" id="id_confirm_friend_request" data-request-url="{% url 'friends:accept_friend_request'  %}" 
+                                    <a class="btn account-button confirm-friend-request mr-1" id="id_confirm_friend_request" data-request-url="{% url 'friends:accept_friend_request'  %}" 
                                     data-friend-request-id="{{ received_friend_request_id }}" onclick='acceptFriendRequest(this)'>Confirm</a>
                                     <a class="btn btn-secondary decline-friend-request ml-1" id="id_decline_friend_request" data-request-url="{% url 'friends:decline_friend_request'  %}" 
                                     data-friend-request-id="{{ received_friend_request_id }}" onclick='declineFriendRequest(this)'>Decline</a>
@@ -159,7 +188,7 @@
                                     Cancel friend request
                                 </a>
                                 {% else %}
-                                <a class="btn btn-primary" id="id_add_friend_btn" data-request-url="{% url 'friends:friend_request' %}" 
+                                <a class="btn account-button" id="id_add_friend_btn" data-request-url="{% url 'friends:friend_request' %}" 
                                 data-account-id="{{ account.id }}" onclick='sendFriendRequest(this);'>
                                     Add friend
                                 </a>
@@ -172,33 +201,32 @@
         </div>
         {% if request.user.is_authenticated %}
         <div class="d-flex flex-column info-right">
-            <div class="card m-2 px-4 pb-4">
+            <div class="card m-1 px-4 pb-4">
                 <!--friend list section-->
                 <div class="d-flex flex-column pt-2">
                     <a class="friend-list-link" href="{% url 'friends:friend_list' account.id %}">
                         <div class="d-flex flex-row align-items-center justify-content-center icon-container">
-                            <span class="material-symbols-outlined pt-1" id=id_friend_list_icon>group</span>
-                            <span class="friend-list-text px-1 pt-1">Friends ({{ friends|length }})</span>
+                            <span class="d-flex material-symbols-outlined pt-1" id="id_friend_list_icon">group</span>
+                            <span class="d-flex friend-list-text px-1 pt-1">Friends ({{ friends|length }})</span>
                         </div>
                     </a>
                 </div>
             </div>
-
             <!--friend requests-->
             {% if active_friend_requests %}
-            <div class="card m-2 px-4 pb-4">
+            <div class="card m-1 px-4 pb-4">
                 <div class="d-flex flex-column pt-2">
                     <a class="friend-request-link" href="{% url 'friends:friend_requests' account.id %}">
                         <div class="d-flex flex-row align-items-center justify-content-center icon-container">
-                            <span class="material-symbols-outlined">person_add</span>
-                            <span class="friend-request-text px-1 pt-1">Friend requests ({{ active_friend_requests|length }})</span>
+                            <span class="d-flex material-symbols-outlined pt-1" id="id_friend_requests_icon">person_add</span>
+                            <span class="d-flex friend-request-text px-1 pt-1">Friend requests ({{ active_friend_requests|length }})</span>
                         </div>
                     </a>
                 </div>
             </div>
             {% endif %}
 
-            <div class="card m-2 px-4" id="id_interests">
+            <div class="card m-1 px-4" id="id_interests">
                 <div class="card-header">
                     Interests
                 </div>
@@ -208,7 +236,7 @@
                         {% if info.tags.all %}
                             <div class="d-flex flex-row justify-content-center" style="flex-wrap: wrap;">
                             {% for tag in info.tags.all %}
-                                <span class="p-1 m-1" style="border: 1px green solid; background-color: LightGreen;">{{ tag|lower }}</span>
+                                <span class="p-1 m-1" style="background-color: #9779a8;">{{ tag|lower }}</span>
                             {% endfor %}
                             </div>
                         {% endif %}
@@ -222,7 +250,7 @@
         {% endif %}
     </div>
     <div class="d-flex flex-row justify-content-center flex-wrap align-items-start">
-        <div class="card summary-card m-2">
+        <div class="card summary-card m-1">
             <div class="card-header">
                 About Me
             </div>
@@ -242,7 +270,7 @@
         </div>
     </div>
     {% if is_friend %}
-    <div class="d-flex flex-row justify-content-center">
+    <div class="d-flex flex-row justify-content-center mt-1">
         <a class="btn btn-secondary remove-friend-button" data-request-url="{% url 'friends:remove_friend' %}"
         data-account-id="{{ account.id }}" onclick='removeFriend(this);'>
             Remove friend
