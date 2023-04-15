@@ -8,9 +8,6 @@
         const myUrl = element.getAttribute('data-request-url');
         const id = element.getAttribute('data-account-id');
 
-        console.log(myUrl);
-        console.log(id);
-
         requestData = {
             "csrfmiddlewaretoken": token,
             "receiver_user_id": id,

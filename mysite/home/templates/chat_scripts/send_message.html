@@ -6,7 +6,6 @@
         // javascript - protect against Cross-Site Scripting (XSS)
         const myUrl = element.getAttribute('data-request-url');
         const friend_id = element.getAttribute('data-friend-id');
-        console.log(myUrl);
 
         requestData = {
             "csrfmiddlewaretoken": token,
@@ -21,9 +20,6 @@
             data: requestData,
             success: function(data){
                 if(data.response == "success"){
-                    console.log("yes")
-                    console.log(data.response)
-                    console.log(data.room_id)
                     window.location.href = '/privatechat/' + data.room_id + '/chat/'
                 }
                 else if(data.response != null){
@@ -32,7 +28,7 @@
             },
             error: function(data){
                 console.log(data);
-                alert("Something went wrong: " + data);
+                alert("Something went wrong");
             },
         })
     }

@@ -1,3 +1,5 @@
+import logging
+
 from django.views import View
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -5,6 +7,9 @@ from django.utils import timezone
 
 from publicchat.models import PublicChat, PublicMessages
 from account.models import Account
+
+
+logger = logging.getLogger('django')
 
 
 class PublicChatView(View):
@@ -25,29 +30,20 @@ class PublicChatView(View):
                 for account in accounts:
                     chatroom.users.add(account)
             chat_users = chatroom.users.all()
-            print(chat_users)
-
             # get user's local timezone based on their timezone offset when compared to UTC
             timezone_offset = request.session.get('tz_offset', None)
-            print(timezone_offset)
             if timezone_offset is not None:
                 timezone_offset = int(timezone_offset) * -1
                 user_timezone = timezone.get_fixed_timezone(timezone_offset)
-                print(user_timezone)
             else:
                 user_timezone = 0
-
             recent_messages = PublicMessages.objects.filter(room=chatroom).order_by('-id')[:40]
             recent_messages = recent_messages[::-1]
-
         except Exception as e:
-            print('error - no chat messages found')
-            print(e)
+            logger.warning('PublicChatView - no messages found for public chat room')
             recent_messages = None
             chat_users = None
-
         ctx = {'userid': userid, 'username': username, 'recent_messages': recent_messages, 'chat_users': chat_users, 'user_timezone': user_timezone} 
-        print(recent_messages[-1].created_at)
         return render(request, self.template_name, ctx)
     
 
@@ -55,7 +51,6 @@ def get_previous_messages(request):
     if request.method == "GET":
         message_id = request.GET.get('message_id')
         chatroom = PublicChat.objects.all().first()
-
         oldest_message = PublicMessages.objects.get(id=message_id)
         previous_messages = PublicMessages.objects.filter(room=chatroom, id__lt=oldest_message.id).order_by('-id')[:40]
         response_data = {'messages': []}

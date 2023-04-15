@@ -1,7 +1,7 @@
 """samples URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/3.0/topics/http/urls/
+    https://docs.djangoproject.com/en/4.2/topics/http/urls/
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -60,17 +60,7 @@ if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-# Switch to social login if it is configured - Keep for later
-try:
-    from . import github_settings
-    social_login = 'registration/login_social.html'
-    urlpatterns.insert(0,
-                       path('accounts/login/', auth_views.LoginView.as_view(template_name=social_login))
-                       )
-    print('Using', social_login, 'as the login template')
-except:
-    print('Using registration/login.html as the login template')
-
-# References
-
-# https://docs.djangoproject.com/en/3.0/ref/urls/#include
+social_login = 'registration/login_social.html'
+urlpatterns.insert(0,
+                    path('accounts/login/', auth_views.LoginView.as_view(template_name=social_login))
+                    )

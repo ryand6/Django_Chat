@@ -360,8 +360,6 @@
 <script type="text/javascript">
 
     var requestUserid = JSON.parse(document.getElementById('userid').textContent);
-    console.log(requestUserid);
-
     var token = "{{ csrf_token }}";
 
     $(document).ready(function() {
@@ -379,14 +377,14 @@
                     if (userStatus.classList.contains('user-away-circle') || userStatus.classList.contains('user-offline-circle')) {
                         requestInProgress = true;
                         $.ajax({
-                            url: "notifications/set_user_status_online/",
+                            url: window.location.protocol + "//" + window.location.host + "notifications/set_user_status_online/",
                             method: "POST",
                             data: {status: "online", "csrfmiddlewaretoken": token,},
                             success: function(response) {
-                            console.log("User status updated to 'away'.");
+                                // user status updated to online
                             },
                             error: function(error) {
-                            console.log("Error updating user status: " + error);
+                                console.log("Error updating user status: " + error);
                             },
                             complete: function() {
                                 requestInProgress = false;
@@ -406,14 +404,14 @@
                     if (userStatus.classList.contains('user-away-circle') || userStatus.classList.contains('user-offline-circle')) {
                         requestInProgress = true;
                         $.ajax({
-                            url: "notifications/set_user_status_online/",
+                            url: window.location.protocol + "//" + window.location.host + "notifications/set_user_status_online/",
                             method: "POST",
                             data: {status: "online", "csrfmiddlewaretoken": token,},
                             success: function(response) {
-                            console.log("User status updated to 'away'.");
+                                // User status updated to online
                             },
                             error: function(error) {
-                            console.log("Error updating user status: " + error);
+                                console.log("Error updating user status: " + error);
                             },
                             complete: function() {
                                 requestInProgress = false;
@@ -431,14 +429,14 @@
             if (idle_time > 20 * 60 * 1000) { 
                 // User has been idle for more than 20 mins, update status to "away"
                 $.ajax({
-                    url: "notifications/set_user_status_away/",
+                    url: window.location.protocol + "//" + window.location.host + "notifications/set_user_status_away/",
                     method: "POST",
                     data: {status: "away", "csrfmiddlewaretoken": token,},
                     success: function(response) {
-                    console.log("User status updated to 'away'.");
+                        // User status updated to away
                     },
                     error: function(error) {
-                    console.log("Error updating user status: " + error);
+                        console.log("Error updating user status: " + error);
                     }
                 });
             }
@@ -447,7 +445,6 @@
 
     function runSearch(){
         var query = document.getElementById("id_search_bar").value;
-        console.log(query)
         window.location.replace("{% url 'account:search' %}?search=" + query);
         return false;
     }
@@ -477,7 +474,6 @@
 
         onlineStatusSocket.onmessage = function(e) {
             let data = JSON.parse(e.data)
-            console.log("A user's online status has changed");
 
             const userid = data.user_id;
             const onlineStatus = data.status;
@@ -512,10 +508,6 @@
 
         notificationSocket.onmessage = function(e) {
             let data = JSON.parse(e.data);
-            console.log("NOTIFICATION!")
-            console.log(data);
-
-            console.log(window.location.origin);
 
             var timestampAsObj = new Date(data.timestamp);
             var timestampFormattedAsDate = formatter.format(timestampAsObj);
@@ -567,16 +559,11 @@
             };
         }
     }
-    else {
-        console.log("NOT AUTHENTICATED!");
-    }
 
 
     function storeUserTimezoneOffset() {
         var tzOffset = new Date().getTimezoneOffset();
-        console.log("tzOffset: ");
-        console.log(tzOffset);
-        console.log(token);
+
         requestData = {
             "csrfmiddlewaretoken": token,
             "tz_offset": tzOffset,
@@ -589,11 +576,11 @@
             data: requestData,
             success: function(data) {
                 if (data['response'] == "success") {
-                    console.log("stored users timezone offset");
+                    // stored users timezone offset
                 }
             },
             error: function(data) {
-                alert("Something went wrong: " + data);
+                alert("Something went wrong");
             }
         });
     }
@@ -603,12 +590,12 @@
 
         // only allow one message notification on screen at a time
         if (oldNotification !== null) {
-                    navBarRight.removeChild(oldNotification);
+            navBarRight.removeChild(oldNotification);
 
-                    // if new notification is replacing old notification, allow 0.5s gap
-                    setTimeout(function() {
-                        navBarRight.insertBefore(element, navBarRight.firstChild);
-                    }, 500);
+            // if new notification is replacing old notification, allow 0.5s gap
+            setTimeout(function() {
+                navBarRight.insertBefore(element, navBarRight.firstChild);
+            }, 500);
         } else {
             navBarRight.insertBefore(element, navBarRight.firstChild);
         }
@@ -617,15 +604,15 @@
 
         // remove pop up notification from screen after specified amount of time
         setTimeout(function() {
-                navBarRight.removeChild(element);
-            }, duration);
+            navBarRight.removeChild(element);
+        }, duration);
     }
 
 
     function updateNotifications() {
         $.ajax({
             type: "GET",
-            url: '/notifications/update_notifications/',
+            url: window.location.protocol + "//" + window.location.host + "/notifications/update_notifications/",
             success: function (data) {
                 var unreadNotifications = data.unread_notifications;
                 if (unreadNotifications > 0) {
@@ -649,7 +636,7 @@
     function updateFriendNotifications() {
         $.ajax({
             type: "GET",
-            url: '/notifications/update_friend_notifications/',
+            url: window.location.protocol + "//" + window.location.host + "/notifications/update_friend_notifications/",
             success: function (data) {
                 var unreadNotifications = data.unread_friend_notifications;
                 var messageNotificationCount = document.querySelector('.friend-notification-count');
@@ -669,7 +656,6 @@
                 } else if (unreadNotifications == 0 && messageNotificationCount !== null) {
                     friendNotificationDiv.removeChild(messageNotificationCount);
                 }
-
             }
         });
     }
@@ -681,15 +667,14 @@
         var messageNotificationCount = document.querySelector('.friend-notification-count');
         if (messageNotificationCount !== null) {
             $.ajax({
-                        type: 'GET',
-                        url: '/notifications/update_accepted_friend_request_notifications/',
-                        dataType: 'json',
-                        success: function(data) {
-                            if (data.response == "success") {
-                                console.log("accepted friend request notifications updated")
-                                updateFriendNotifications();
-                            }
+                    type: 'GET',
+                    url: window.location.protocol + "//" + window.location.host + "/notifications/update_accepted_friend_request_notifications/",
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.response == "success") {
+                            updateFriendNotifications();
                         }
+                    }
                 });
             }
         }
@@ -701,7 +686,7 @@
         }
         // Send an AJAX request to update the user's status to offline
         $.ajax({
-            url: '/notifications/set_user_status_offline/',
+            url: window.location.protocol + "//" + window.location.host + "/notifications/set_user_status_offline/",
             method: 'POST',
             data: requestData,
             async: false

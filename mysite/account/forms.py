@@ -1,8 +1,5 @@
-import logging
-
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import authenticate
 
 from account.models import Account, AccountInfo
 from home.views import sanitise_text
@@ -88,7 +85,6 @@ class AccountInfoUpdateForm(forms.ModelForm):
         name = self.cleaned_data['name']
         if name is None:
             return name
-        print(name)
         if sanitise_text(name) != name:
             raise forms.ValidationError("Name contains profanity.")
         return name
@@ -97,7 +93,6 @@ class AccountInfoUpdateForm(forms.ModelForm):
         summary = self.cleaned_data['summary']
         if summary is None:
             return summary
-        print(summary)
         if sanitise_text(summary) != summary:
             raise forms.ValidationError("Summary contains profanity.")
         return summary
@@ -106,7 +101,6 @@ class AccountInfoUpdateForm(forms.ModelForm):
         tags = self.cleaned_data['tags']
         if tags is None:
             return tags
-        print(tags)
         for tag in tags:
             if sanitise_text(tag) != tag:
                 raise forms.ValidationError(f"Tag '{tag}' contains profanity.")
@@ -114,7 +108,6 @@ class AccountInfoUpdateForm(forms.ModelForm):
 
     def save(self, commit=True):
         info = super(AccountInfoUpdateForm, self).save(commit=False)
-
         if commit:
             info.save()
             # required to save tags

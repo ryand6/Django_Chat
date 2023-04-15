@@ -340,6 +340,11 @@
         margin-bottom: 0;
     }
 
+    .date-separator-dashes{
+        overflow: hidden;
+        white-space: nowrap; 
+    }
+
 </style>
 
 <div class="container d-flex flex-row" id="id_chat_log_container">
@@ -543,10 +548,6 @@
 
     allChatsSocket.onmessage = function (e) {
         const data = JSON.parse(e.data);
-        console.log(data);
-
-        console.log(Object.keys(data).length);
-
         // message response for online status has an object length of two - don't run ajax request when this
         // is fired - only when the length of the object is 1 for the room_id
         if (Object.keys(data).length == 1) {
@@ -556,9 +557,6 @@
                 dataType: 'json',
                 data: {"room_id": data.room_id},
                 success: function(response) {
-                    console.log("Response: ");
-                    console.log(response);
-
                     if (data.room_id == requestRoomId) {
                         isNewMessageReceivedCurrentChat = true;
                     }
@@ -568,7 +566,6 @@
                     
                     // if chatroom doesn't exist in chat log, add the new chat room to the log
                     var chatLink = document.getElementById('private_chat_link_' + response.chat_id);
-                    console.log(chatLink);
                     var chatsLog = document.getElementById('id_private_chats_log');
                     var elementToInsertAfter = chatsLog.children[0];
                     
@@ -579,10 +576,8 @@
                     }
                     
                     if (chatLink === null) {
-                        console.log("time to append");
                         let chatsLog = document.getElementById('id_private_chats_log');
                         let elementToInsertAfter = chatsLog.children[0];
-                        console.log(elementToInsertAfter);
                         let linkUrl = "/privatechat/" + response.chat_id + "/chat/";
                         newHTML = `<a href="${linkUrl}" class="private-chat-link" id="private_chat_link_${response.chat_id}"><div class="private-chats-room-message-container"><div class="private-chats-room-picture-container">
                             <img class="private-chats-room-pic" src="${response.chat_image}" alt="chat room ${response.chat_id}'s profile image"></div>
@@ -604,10 +599,8 @@
                     }
                     // if chatLink variable exists, simply update the corresponding chat window
                     else if (chatLink !== null) {
-                        console.log("Found!");
                         let chatName = document.getElementById('id_room_members_' + response.chat_id);
                         chatName.textContent = response.chat_name;
-                        console.log(response.chat_name);
                         let chatLastDate = document.getElementById('id_room_last_sent_' + response.chat_id);
                         chatLastDate.textContent = timestampFormattedAsDate;
                         if (response.last_message_user != requestUserid) {
@@ -649,7 +642,7 @@
     try {
         var lastLoadedMessageId = JSON.parse(document.getElementById('lastSentMessageId').textContent);
     } catch (error) {
-        console.log('No messages sent in chat so far');
+        // No messages sent in chat so far
     }
     
     var allMessagesLoaded = false;
@@ -676,7 +669,6 @@
 
     chatSocket.onmessage = function (e) {
         const data = JSON.parse(e.data);
-        console.log(data);
 
         if (Object.keys(data).length == 2) {
             const userid = data.user_id;
@@ -797,18 +789,10 @@
                 }
             }
 
-            if (data.code_snippet == true) {
-                const bodyElement = document.createElement('code');
-                bodyElement.classList.add('chatroom-message-body-code');
-                bodyElement.textContent = data.message;
-                messageTextElement.appendChild(bodyElement);
-            }
-            else {
-                const bodyElement = document.createElement('span');
-                bodyElement.classList.add('chatroom-message-body');
-                bodyElement.textContent = data.message;
-                messageTextElement.appendChild(bodyElement);
-            }
+            const bodyElement = document.createElement('span');
+            bodyElement.classList.add('chatroom-message-body');
+            bodyElement.textContent = data.message;
+            messageTextElement.appendChild(bodyElement);
 
             const timestampElement = document.createElement('span');
             timestampElement.classList.add('chatroom-message-timestamp');
@@ -849,7 +833,6 @@
     // send message
     document.querySelector('#chat_message_submit').onclick = function(e) {
         var message = $("#chat_message_input").data('emojioneArea').getText();
-        console.log(message);
         chatSocket.send(JSON.stringify({
             'message': message
         }));
@@ -863,8 +846,6 @@
     // already when the message is received and the user clicks on the input bar - updates without having
     // to refresh page
     document.querySelector('#id_message_bar').onclick = function(e) {
-        console.log("message bar clicked");
-
         // only allow AJAX requests to be made if a new message has been received to current private chat window
         if (isNewMessageReceivedCurrentChat == true){
             isNewMessageReceivedCurrentChat = false;
@@ -875,7 +856,6 @@
                     data: {"room_id": requestRoomId, "recipient_id": requestUserid, "csrfmiddlewaretoken": token},
                     success: function(data) {
                         if (data.response == "success") {
-                            console.log("Successfully update chatroom " + requestRoomId + "'s unread messages");
                             let lastDateSentUpdateStyle = document.getElementById('id_room_last_sent_' + requestRoomId);
                             lastDateSentUpdateStyle.style.color = "white";
                             lastDateSentUpdateStyle.style.fontWeight = "normal";
@@ -890,8 +870,6 @@
                                 url: '/notifications/update_notifications/',
                                 success: function (data) {
                                     var unreadNotifications = data.unread_notifications;
-                                    console.log("Update notifs in header");
-                                    console.log(unreadNotifications);
                                     let messageNotificationCount = document.querySelector('.message-notification-count');
                                     if (messageNotificationCount !== null) {
                                         if (unreadNotifications > 0) {
@@ -906,7 +884,7 @@
                         } else if (data.response !== null) {
                             console.log(data.response)
                         } else{
-                            console.log("Something went wrong whilst updating chatrrom " + requestRoomId + "'s unread messages");
+                            console.log("Something went wrong whilst updating chatroom " + requestRoomId + "'s unread messages");
                         }
                     }
             });
@@ -929,18 +907,12 @@
                         let message = messages[i];
                         let username = message.username;
                         let timestamp = message.timestamp;
-                        console.log(timestamp);
                         let userid = message.userid;
                         let timestampAsObj = new Date(timestamp);
                         let timestampFormattedAsDate = formatter.format(timestampAsObj);
-                        // convert offset to milliseconds to perform time calculation
-                        let tzOffset = new Date().getTimezoneOffset() * 60 * 1000;
-                        console.log(tzOffset);
-                        // adjust the time of the timestamp according to the users local timezone offset
-                        timestampAsObj.setTime(timestampAsObj.getTime() - tzOffset);
-                        console.log(timestampAsObj);
                         let timestampFormattedAsTime = timestampAsObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        console.log(timestampFormattedAsTime);
+                        console.log(timestampAsObj.getTime())
+                        console.log(timestampFormattedAsTime)
                         
                         let text = message.message;
                         let profile_pic = message.profile_pic;
@@ -964,7 +936,7 @@
                         }
                         else {
                             let prevTimestamp = messages[i + 1].timestamp;
-                            let prevTimestampAsObj = new Date(timestamp);
+                            let prevTimestampAsObj = new Date(prevTimestamp);
                             let prevTimestampFormattedAsDate = formatter.format(prevTimestampAsObj);
 
                             if (timestampFormattedAsDate != prevTimestampFormattedAsDate) {

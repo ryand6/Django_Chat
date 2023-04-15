@@ -5,7 +5,7 @@ import json
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.contrib.auth import login, authenticate
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied

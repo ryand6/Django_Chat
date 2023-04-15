@@ -403,7 +403,7 @@
     try {
         var lastLoadedMessageId = JSON.parse(document.getElementById('lastSentMessageId').textContent);
     } catch (error) {
-        console.log('Error: ', error);
+        console.log('No messages found in public chat: ', error);
     }
 
     var requestUsername = JSON.parse(document.getElementById('username').textContent);
@@ -430,8 +430,6 @@
 
     chatSocket.onmessage = function (e) {
         const data = JSON.parse(e.data);
-        console.log(data);
-
         const messagesElement = document.querySelector('#chat_log');
 
         let dateObj = new Date(data.timestamp);
@@ -577,16 +575,13 @@
 
     // if user presses enter, send message
     document.querySelector('#chat_message_input').onkeyup = function(e) {
-        console.log(e.keyCode);
         if (e.keyCode === 13) {  // enter, return
-            console.log("enter pressed");
             document.querySelector('#chat_message_submit').click();
         }
     };
 
     document.querySelector('#chat_message_submit').onclick = function(e) {
             var message = $("#chat_message_input").data('emojioneArea').getText();
-            console.log(message);
             chatSocket.send(JSON.stringify({
                 'message': message
             }));
@@ -613,18 +608,10 @@
                         let message = messages[i];
                         let username = message.username;
                         let timestamp = message.timestamp;
-                        console.log(timestamp);
                         let userid = message.userid;
                         let timestampAsObj = new Date(timestamp);
                         let timestampFormattedAsDate = formatter.format(timestampAsObj);
-                        // convert offset to milliseconds to perform time calculation
-                        let tzOffset = new Date().getTimezoneOffset() * 60 * 1000;
-                        console.log(tzOffset);
-                        // adjust the time of the timestamp according to the users local timezone offset
-                        timestampAsObj.setTime(timestampAsObj.getTime() - tzOffset);
-                        console.log(timestampAsObj);
                         let timestampFormattedAsTime = timestampAsObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        console.log(timestampFormattedAsTime);
                         
                         let text = message.message;
                         let profile_pic = message.profile_pic;
@@ -648,7 +635,7 @@
                         }
                         else {
                             let prevTimestamp = messages[i + 1].timestamp;
-                            let prevTimestampAsObj = new Date(timestamp);
+                            let prevTimestampAsObj = new Date(prevTimestamp);
                             let prevTimestampFormattedAsDate = formatter.format(prevTimestampAsObj);
 
                             if (timestampFormattedAsDate != prevTimestampFormattedAsDate) {

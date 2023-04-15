@@ -254,9 +254,6 @@
 
     chatSocket.onmessage = function (e) {
         const data = JSON.parse(e.data);
-        console.log(data);
-
-        console.log(Object.keys(data).length);
 
         // message response for online status has an object length of two - don't run ajax request when this
         // is fired - only when the length of the object is 1 for the room_id
@@ -267,15 +264,11 @@
                 dataType: 'json',
                 data: {"room_id": data.room_id},
                 success: function(response) {
-                    console.log("Response: ");
-                    console.log(response);
-
                     let timestampAsObj = new Date(response.last_date);
                     let timestampFormattedAsDate = formatter.format(timestampAsObj);
                     
                     // if chatroom doesn't exist in chat log, add the new chat room to the log
                     var chatLink = document.getElementById('private_chat_link_' + response.chat_id);
-                    console.log(chatLink);
                     var chatsLog = document.getElementById('id_private_chats_log');
                     var elementToInsertAfter = chatsLog.children[0];
                     
@@ -286,10 +279,8 @@
                     }
                     
                     if (chatLink === null) {
-                        console.log("time to append");
                         let chatsLog = document.getElementById('id_private_chats_log');
                         let elementToInsertAfter = chatsLog.children[0];
-                        console.log(elementToInsertAfter);
                         let linkUrl = "/privatechat/" + response.chat_id + "/chat/";
                         let newHTML = `<a href="${linkUrl} class="private-chat-link" id="private_chat_link_${response.chat_id}"><div class="private-chats-room-message-container"><div class="private-chats-room-picture-container">
                             <img class="private-chats-room-pic" src="${response.chat_image}" alt="chat room ${response.chat_id}'s profile image"></div>
@@ -311,10 +302,8 @@
                     }
                     // if chatLink variable exists, simply update the corresponding chat window
                     else if (chatLink !== null) {
-                        console.log("Found!");
                         let chatName = document.getElementById('id_room_members_' + response.chat_id);
                         chatName.textContent = response.chat_name;
-                        console.log(response.chat_name);
                         let chatLastDate = document.getElementById('id_room_last_sent_' + response.chat_id);
                         chatLastDate.textContent = timestampFormattedAsDate;
                         if (response.last_message_user != requestUserid) {

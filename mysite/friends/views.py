@@ -1,4 +1,5 @@
 import json
+import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django.views import View
@@ -8,6 +9,8 @@ from account.models import Account
 from friends.models import FriendRequest, FriendList
 from notifications.models import FriendNotifications
 from privatechat.models import PrivateChat
+
+logger = logging.getLogger('django')
 
 
 class FriendListView(View):
@@ -109,8 +112,7 @@ def accept_friend_request(request, *args, **kwargs):
                     friend_notification.engaged = True
                     friend_notification.save()
                 except Exception as e:
-                    print("no friend notification found")
-                    print(e)
+                    logger.warning(f'user {user.id} - accept_friend_request view - no friend notification found - {str(e)}')
                 if received_friend_request.receiver == user:
                     # handle if sender has cancelled friend request
                     if received_friend_request.is_active_request == False:
@@ -119,7 +121,6 @@ def accept_friend_request(request, *args, **kwargs):
                         try:
                             received_friend_request.accepted()
                         except Exception as e:
-                            print(str(e))
                             payload['response'] = "unable to accept request"
                         else:
                             payload['response'] = "success"
@@ -147,7 +148,7 @@ def decline_friend_request(request, *args, **kwargs):
                     friend_notification.engaged = True
                     friend_notification.save()
                 except:
-                    print("no friend notification found")
+                    logger.warning(f'user {user.id} - decline_friend_request view - no friend notification found - {str(e)}')
                 if received_friend_request.receiver == user:
                     if received_friend_request.is_active_request == False:
                         payload['response'] = "friend request is no longer active"
@@ -187,12 +188,11 @@ def cancel_friend_request(request, *args, **kwargs):
                 friend_notification.engaged = True
                 friend_notification.save()
             except:
-                print("no friend request notification found")
+                logger.warning(f'user {user.id} - cancel_friend_request view - no friend notification found - {str(e)}')
             
-            # should only be one request as combination of sender and user is unique, but handle just in case
-            # and print that this occurred
+            # should only be one request as combination of sender and user is unique, but handle and log just in case
             if len(friend_request) > 1:
-                print("More than one friend request found")
+                logger.warning(f'cancel_friend_request view - more than one friend request found from user {user.id} to receiver {receiver.id}')
             for req in friend_request:
                 req.cancelled()
             payload['response'] = "success"
@@ -220,7 +220,7 @@ def unfriend(request, *args, **kwargs):
                     privatechat = PrivateChat.objects.get(title=title)
                     privatechat.delete()
                 except PrivateChat.DoesNotExist:
-                    print("No private chat for this combination of users")
+                    logger.warning(f'user {user.id} - unfriend view - no private chat found to delete for combination of users: user {user.id} and user {account.id}')
             except Exception as e:
                 payload['response'] = f"something went wrong {str(e)}"
         else:

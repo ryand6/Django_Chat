@@ -22,6 +22,10 @@
         margin-left: auto;
     }
 
+    .friend-text-container {
+        margin-left: auto;
+    }
+
     #id_account_row{
         width: 100%;
     }
@@ -99,14 +103,12 @@
                         {% if account.0 != request.user %}
                         <div class="d-flex flex-row card-right align-items-center">
                             {% if account.1 == "1" %}
-                            <div class="d-flex flex-row friend-text-container p-2">
-                                <p class="message-account">
-                                    <a class="d-flex btn search-profile-button mr-2 send-friend-private-message" data-friend-id="{{ account.0.id }}" data-request-url="{% url 'privatechat:create_chat' %}"
-                                    onclick='sendFriendMessage(this);'>
-                                        <span class="d-flex material-symbols-outlined">sms</span>
-                                        <span class="d-flex message-btn-text m-auto pl-2">Message</span>
-                                    </a>
-                                </p>
+                            <div class="d-flex flex-row friend-text-container justify-content-end p-2">
+                                <a class="d-flex btn search-profile-button mr-2 send-friend-private-message" data-friend-id="{{ account.0.id }}" data-request-url="{% url 'privatechat:create_chat' %}"
+                                onclick='sendFriendMessage(this);'>
+                                    <span class="d-flex material-symbols-outlined">sms</span>
+                                    <span class="d-flex message-btn-text m-auto pl-2">Message</span>
+                                </a>
                             </div>
                             {% elif account.1 == "0" %}
                             <div class="d-flex flex-row add-friend-container justify-content-end p-3">

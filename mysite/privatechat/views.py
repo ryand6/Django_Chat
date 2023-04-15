@@ -1,12 +1,11 @@
 import json
-import pytz
+import logging
 
 from django.views import View
 from django.utils import timezone
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Subquery, OuterRef, Count
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy, reverse
 from django.core.exceptions import PermissionDenied
 from django.db.utils import IntegrityError
 from django.db.models.functions import Coalesce
@@ -14,6 +13,9 @@ from django.db.models.functions import Coalesce
 from privatechat.models import PrivateChat, PrivateMessages
 from account.models import Account
 from notifications.models import MessageNotifications
+
+
+logger = logging.getLogger('django')
 
 
 class PrivateChatAllChatsView(View):
@@ -30,58 +32,45 @@ class PrivateChatAllChatsView(View):
             try:
                 # filter private chat to return query set where current user is a member of each private chatroom
                 private_chats = PrivateChat.objects.filter(users__in=[user]).order_by('pk')
-
                 # subquery of the last message sent in each of the list of private chats the user is part of
                 last_messages = PrivateMessages.objects.filter(
                     room_id=OuterRef('pk')
                 ).order_by('-created_at').values('message')[:1]
-
                 # sub query of the last date a message was sent in each of the private chats the user is part of
                 last_dates = PrivateMessages.objects.filter(
                     room_id=OuterRef('pk')
                 ).order_by('-created_at').values('created_at')[:1]
-
                 # sub query of the last user for each last message sent's id
                 last_users = PrivateMessages.objects.filter(
                     room_id=OuterRef('pk')
                 ).order_by('-created_at').values('user_id')[:1]
-
                 # sub query of the count of unread message notifications for each private chatroom
                 unread_counts = MessageNotifications.objects.filter(
                     recipient=user,
                     read=False,
                     room_id=OuterRef('pk')
                 ).values('room').annotate(count=Count('room')).values('count')
-
                 # make the last message accessible in the main queryset for each chatroom
                 chats_with_last_messages = private_chats.annotate(
                     last_message=Subquery(last_messages)
                 )
-
                 # make the last date a message was sent accessible in the main queryset for each chatroom
                 chats_with_last_messages = chats_with_last_messages.annotate(
                     last_date=Subquery(last_dates)
                 )
-
                 # make the last user's id accessable in the main queryset for each chatroom
                 chats_with_last_messages = chats_with_last_messages.annotate(
                     last_user=Subquery(last_users)
                 )
-
                 # add the count of unread message notifications for each chatroom to the main queryset
                 chats_with_last_messages = chats_with_last_messages.annotate(
                     unread_count=Coalesce(Subquery(unread_counts), 0)
                 )
-
-                # # order final queryset by last date desc so that any time the page is refreshed, the most recent message
+                # order final queryset by last date desc so that any time the page is refreshed, the most recent message
                 # appears first
                 chats_with_last_messages = chats_with_last_messages.order_by('-last_date')
-
-            except Exception as e:
-                print("no private chats found")
-                print(e)
+            except:
                 chats_with_last_messages = []
-        
         ctx = {'chats': chats_with_last_messages, 'userid': user.id}
         return render(request, self.template_name, ctx)
 
@@ -100,79 +89,61 @@ class PrivateChatView(View):
         # if user is not part of private chat, prevent access
         if request.user not in chat_users:
             raise PermissionDenied
-
         timezone_offset = request.session.get('tz_offset', None)
         if timezone_offset is not None:
             timezone_offset = int(timezone_offset) * -1
             user_timezone = timezone.get_fixed_timezone(timezone_offset)
         else:
             user_timezone = 0
-
         recent_messages = PrivateMessages.objects.filter(room=chatroom).order_by('-id')[:40]
         recent_messages = recent_messages[::-1]
-
         try:
             MessageNotifications.objects.filter(room=chatroom, recipient=request.user).update(read=True)
         except:
-            print("no notifications to update")
-
+            pass
         try:
             # filter private chat to return query set where current user is a member of each private chatroom
             private_chats = PrivateChat.objects.filter(users__in=[user]).order_by('pk')
-
             # subquery of the last message sent in each of the list of private chats the user is part of
             last_messages = PrivateMessages.objects.filter(
                 room_id=OuterRef('pk')
             ).order_by('-created_at').values('message')[:1]
-
             # sub query of the last date a message was sent in each of the private chats the user is part of
             last_dates = PrivateMessages.objects.filter(
                 room_id=OuterRef('pk')
             ).order_by('-created_at').values('created_at')[:1]
-
             # sub query of the last user for each last message sent's id
             last_users = PrivateMessages.objects.filter(
                 room_id=OuterRef('pk')
             ).order_by('-created_at').values('user_id')[:1]
-
             # sub query of the count of unread message notifications for each private chatroom
             unread_counts = MessageNotifications.objects.filter(
                 recipient=user,
                 read=False,
                 room_id=OuterRef('pk')
             ).values('room').annotate(count=Count('room')).values('count')
-
             # make the last message accessible in the main queryset for each chatroom
             chats_with_last_messages = private_chats.annotate(
                 last_message=Subquery(last_messages)
             )
-
             # make the last date a message was sent accessible in the main queryset for each chatroom
             chats_with_last_messages = chats_with_last_messages.annotate(
                 last_date=Subquery(last_dates)
             )
-
             # make the last user's id accessable in the main queryset for each chatroom
             chats_with_last_messages = chats_with_last_messages.annotate(
                 last_user=Subquery(last_users)
             )
-
             # add the count of unread message notifications for each chatroom to the main queryset
             chats_with_last_messages = chats_with_last_messages.annotate(
                 unread_count=Coalesce(Subquery(unread_counts), 0)
             )
-
-            # # order final queryset by last date desc so that any time the page is refreshed, the most recent message
+            # order final queryset by last date desc so that any time the page is refreshed, the most recent message
             # appears first
             chats_with_last_messages = chats_with_last_messages.order_by('-last_date')
-
         except Exception as e:
-            print("no private chats found")
-            print(e)
             chats_with_last_messages = []
-
         ctx = {'room_id': room_id, 'userid': userid, 'username': username, 'recent_messages': recent_messages, 'chat_users': chat_users, 'chats': chats_with_last_messages, 'user_timezone': user_timezone} 
-
         return render(request, self.template_name, ctx)
 
 
@@ -190,7 +161,6 @@ def update_chat_log(request):
         private_chat.last_date = last_message.created_at if last_message else None
         private_chat.last_message_user = last_message.user.id if last_message else None
         private_chat.unread_count = unread_count if unread_count else 0
-
         chat_users = []
         private_chat_users = private_chat.users.all()
         for user in private_chat_users:
@@ -198,9 +168,7 @@ def update_chat_log(request):
                 chat_users.append(user.username)
                 if len(private_chat_users) == 2:
                     chat_image = user.profile_image.url
-
         chat_name = ", ".join(chat_users)
-
         payload['chat_id'] = private_chat.id
         payload['chat_name'] = chat_name
         payload['chat_image'] = chat_image
@@ -208,7 +176,6 @@ def update_chat_log(request):
         payload['last_date'] = private_chat.last_date.isoformat()
         payload['last_message_user'] = private_chat.last_message_user
         payload['unread_count'] = private_chat.unread_count
-
         return HttpResponse(json.dumps(payload), content_type="application/json")
 
 
@@ -228,12 +195,10 @@ def create_chat(request):
             chat.save()
             chat.users.add(friend)
             chat.save()
-
         # if chat already exists, retrieve the chat - integrity error arises when room title already exists
         # as the title field is unique
         except IntegrityError:
             chat = PrivateChat.objects.get(title=title)
-
         chat = PrivateChat.objects.get(title=title)
         payload['room_id'] = chat.id
         payload['response'] = "success"
@@ -249,7 +214,7 @@ def get_previous_messages_private(request):
         previous_messages = PrivateMessages.objects.filter(room=chatroom, id__lt=oldest_message.id).order_by('-id')[:40]
         response_data = {'messages': []}
         for message in previous_messages:
-            message_data = {'id': message.id, 'userid': message.user.id, 'message': message.message, 'timestamp': user_time.isoformat(), 'username': message.user.username, 'profile_pic': message.user.profile_image.url}
+            message_data = {'id': message.id, 'userid': message.user.id, 'message': message.message, 'timestamp': message.created_at.isoformat(), 'username': message.user.username, 'profile_pic': message.user.profile_image.url}
             response_data['messages'].append(message_data)
         return JsonResponse(response_data)
     

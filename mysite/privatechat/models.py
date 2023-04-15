@@ -1,12 +1,7 @@
 from django.db import models
-from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.conf import settings
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-from django.utils.module_loading import import_string
 from fernet_fields import EncryptedTextField
-# from encrypted_fields.fields import EncryptedTextField
 
 
 class PrivateChat(models.Model):

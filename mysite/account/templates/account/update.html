@@ -202,7 +202,7 @@
         base64str = isImageSizeValid(image);
         if(base64str != null){
             var requestData = {
-                "csrfmiddlewaretoken": "{{ csrf_token }}",
+                "csrfmiddlewaretoken": token,
                 "image": base64str,
                 "x_coord": cropX,
                 "y_coord": cropY,
@@ -317,15 +317,9 @@
         text.style.cursor = "default"
         text.style.opacity = "0"
 
-        imageContainer.removeEventListener("mouseover", function(event){
-            // profileImage.style.opacity = "0.3";
-            // middleContainer.style.opacity = "1";
-        })
+        imageContainer.removeEventListener("mouseover", function(event){})
 
-        imageContainer.removeEventListener("mouseout", function(event){
-            // profileImage.style.opacity = "1";
-            // middleContainer.style.opacity = "0";
-        })
+        imageContainer.removeEventListener("mouseout", function(event){})
 
         imageContainer.removeEventListener("click", function(event){
             event.preventDefault();
@@ -349,9 +343,8 @@
 
         var cancel = document.getElementById("id_cancel");
         cancel.addEventListener("click", function(event){
-            console.log("cancelled crop - refreshing page");
             window.location.reload();
-        })
+        }) 
     }
 </script>
 
