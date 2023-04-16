@@ -233,6 +233,7 @@ if (len(sys.argv) >= 2 and sys.argv[1] == 'runserver'):
             'django': {
                 'handlers': ['file'],
                 'level': 'WARNING',
+                'propagate': False,
             },
         }
     }

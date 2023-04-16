@@ -143,7 +143,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             # event
             {
-                'type': 'send_userid',
+                'type': 'send.userid',
                 'user_id': user_id,
                 'status': 'disconnected',
             }

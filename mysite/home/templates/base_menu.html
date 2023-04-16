@@ -364,27 +364,27 @@
 
     $(document).ready(function() {
     // Set initial user activity time
-    var user_activity_time = new Date().getTime();
+    var userActivityTime = new Date().getTime();
     var userStatus = document.getElementById(`id_user_${requestUserid}_online_status`);
     var requestInProgress = false;
 
         // Update user activity time on mousemove event
         $(document).mousemove(function() {
-            user_activity_time = new Date().getTime();
+            userActivityTime = new Date().getTime();
 
             if (userStatus !== null) {
                 if (!requestInProgress) {
                     if (userStatus.classList.contains('user-away-circle') || userStatus.classList.contains('user-offline-circle')) {
                         requestInProgress = true;
                         $.ajax({
-                            url: window.location.protocol + "//" + window.location.host + "notifications/set_user_status_online/",
+                            url: window.location.protocol + "//" + window.location.host + "/notifications/set_user_status_online/",
                             method: "POST",
                             data: {status: "online", "csrfmiddlewaretoken": token,},
                             success: function(response) {
                                 // user status updated to online
                             },
                             error: function(error) {
-                                console.log("Error updating user status: " + error);
+                                console.log("Error updating user status to online: " + error);
                             },
                             complete: function() {
                                 requestInProgress = false;
@@ -397,21 +397,21 @@
 
         // Update user activity time on keydown event
         $(document).keydown(function() {
-            user_activity_time = new Date().getTime();
+            userActivityTime = new Date().getTime();
 
             if (userStatus !== null) {
                 if (!requestInProgress) {
                     if (userStatus.classList.contains('user-away-circle') || userStatus.classList.contains('user-offline-circle')) {
                         requestInProgress = true;
                         $.ajax({
-                            url: window.location.protocol + "//" + window.location.host + "notifications/set_user_status_online/",
+                            url: window.location.protocol + "//" + window.location.host + "/notifications/set_user_status_online/",
                             method: "POST",
                             data: {status: "online", "csrfmiddlewaretoken": token,},
                             success: function(response) {
                                 // User status updated to online
                             },
                             error: function(error) {
-                                console.log("Error updating user status: " + error);
+                                console.log("Error updating user status to online: " + error);
                             },
                             complete: function() {
                                 requestInProgress = false;
@@ -425,18 +425,18 @@
         // Check user activity time every minute and update status if necessary
         setInterval(function() {
             var now = new Date().getTime();
-            var idle_time = now - user_activity_time;
-            if (idle_time > 20 * 60 * 1000) { 
-                // User has been idle for more than 20 mins, update status to "away"
+            var idle_time = now - userActivityTime;
+            if (idle_time > 15 * 60 * 1000) { 
+                // User has been idle for more than 15 mins, update status to "away"
                 $.ajax({
-                    url: window.location.protocol + "//" + window.location.host + "notifications/set_user_status_away/",
+                    url: window.location.protocol + "//" + window.location.host + "/notifications/set_user_status_away/",
                     method: "POST",
                     data: {status: "away", "csrfmiddlewaretoken": token,},
                     success: function(response) {
                         // User status updated to away
                     },
                     error: function(error) {
-                        console.log("Error updating user status: " + error);
+                        console.log("Error updating user status to away: " + error);
                     }
                 });
             }
@@ -684,7 +684,7 @@
         requestData = {
             "csrfmiddlewaretoken": token,
         }
-        // Send an AJAX request to update the user's status to offline
+        // Send an AJAX request to update the user's status to offline when a user closes tab with site on or navigates to different site
         $.ajax({
             url: window.location.protocol + "//" + window.location.host + "/notifications/set_user_status_offline/",
             method: 'POST',
