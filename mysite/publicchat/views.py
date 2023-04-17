@@ -43,6 +43,7 @@ class PublicChatView(View):
             logger.warning('PublicChatView - no messages found for public chat room')
             recent_messages = None
             chat_users = None
+            user_timezone = 0
         ctx = {'userid': userid, 'username': username, 'recent_messages': recent_messages, 'chat_users': chat_users, 'user_timezone': user_timezone} 
         return render(request, self.template_name, ctx)
     
