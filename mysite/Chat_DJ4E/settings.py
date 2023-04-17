@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     # Extensions - installed with pip3 / requirements.txt
     'django_extensions',
     'crispy_forms',
-    'emoji_picker',
     'rest_framework',
     'social_django',
     'taggit',
