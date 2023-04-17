@@ -359,6 +359,10 @@
 
 <script type="text/javascript">
 
+    var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+    // Production - port 8001 required
+    var ws_path = ws_scheme + "://" + window.location.host + ":8001/";
+
     var requestUserid = JSON.parse(document.getElementById('userid').textContent);
     var token = "{{ csrf_token }}";
 
@@ -469,7 +473,7 @@
     // handle online status websocket real time updates for all users
     if (isAuthenticated === "True") {
         const onlineStatusSocket = new WebSocket(
-            'ws://' + window.location.host + '/ws/online_status/'
+            ws_path + '/ws/online_status/'
         );
 
         onlineStatusSocket.onmessage = function(e) {
@@ -501,7 +505,7 @@
     if (isAuthenticated === "True") {
 
         const notificationSocket = new WebSocket(
-            'ws://' + window.location.host + '/ws/notifications/' + userId + '/'
+            ws_path + '/ws/notifications/' + userId + '/'
         );
 
         storeUserTimezoneOffset();

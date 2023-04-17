@@ -425,7 +425,7 @@
         }
 
     const chatSocket = new WebSocket(
-        'ws://' + window.location.host + '/ws/public_chat/'
+        ws_path + '/ws/public_chat/'
     );
 
     chatSocket.onmessage = function (e) {

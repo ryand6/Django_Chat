@@ -249,7 +249,7 @@
     var requestUserid = JSON.parse(document.getElementById('userid').textContent);
 
     const chatSocket = new WebSocket(
-        'ws://' + window.location.host + '/ws/all_private_chats/' + requestUserid + '/'
+        ws_path + '/ws/all_private_chats/' + requestUserid + '/'
     );
 
     chatSocket.onmessage = function (e) {
