@@ -40,10 +40,10 @@ AUTH_USER_MODEL = "account.Account"
 
 INSTALLED_APPS = [
     'daphne',
+    'publicchat.apps.PublicchatConfig',
     'home.apps.HomeConfig',
     'account.apps.AccountConfig',
     'friends.apps.FriendsConfig',
-    'publicchat.apps.PublicchatConfig',
     'privatechat.apps.PrivatechatConfig',
     'notifications.apps.NotificationsConfig',
     'django.contrib.admin',
