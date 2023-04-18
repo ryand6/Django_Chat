@@ -3,7 +3,7 @@ import datetime
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import PublicChat, PublicMessages
+from publicchat.models import PublicChat, PublicMessages
 from home.views import sanitise_text
 
 
