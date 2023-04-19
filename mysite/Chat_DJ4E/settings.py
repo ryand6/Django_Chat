@@ -14,7 +14,9 @@ from decouple import config
 
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ["134.209.176.237",]
+ALLOWED_HOSTS = ["134.209.176.237", "chatdj4e.com", "www.chatdj4e.com"]
+
+BASE_URL = "http://chatdj4e.com"
 
 ROOT_URLCONF = f'{config("PROJECT_NAME")}.urls'
 
