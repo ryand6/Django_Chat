@@ -361,7 +361,7 @@
 
     var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
     // Production - port 8001 required
-    var ws_path = ws_scheme + "://" + window.location.host + ":8001/";
+    var ws_path = ws_scheme + "://" + window.location.host + ":8001";
 
     var requestUserid = JSON.parse(document.getElementById('userid').textContent);
     var token = "{{ csrf_token }}";
