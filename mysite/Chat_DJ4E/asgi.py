@@ -30,11 +30,11 @@ application = ProtocolTypeRouter({
     "websocket": AllowedHostsOriginValidator(
             AuthMiddlewareStack(
                 URLRouter([
-                    path('ws/notifications/<int:user_id>/', NotificationConsumer.as_asgi()),
-                    path('ws/online_status/', OnlineStatusConsumer.as_asgi()),
-                    path('ws/public_chat/', PublicChatRoomConsumer.as_asgi()),
-                    path('ws/private_chat/<int:room_id>/', PrivateChatRoomConsumer.as_asgi()),
-                    path('ws/all_private_chats/<int:user_id>/', AllPrivateChatRoomsConsumer.as_asgi()),
+                    path('ws/notifications/<int:user_id>', NotificationConsumer.as_asgi()),
+                    path('ws/online_status', OnlineStatusConsumer.as_asgi()),
+                    path('ws/public_chat', PublicChatRoomConsumer.as_asgi()),
+                    path('ws/private_chat/<int:room_id>', PrivateChatRoomConsumer.as_asgi()),
+                    path('ws/all_private_chats/<int:user_id>', AllPrivateChatRoomsConsumer.as_asgi()),
             ])
         )
     ),
