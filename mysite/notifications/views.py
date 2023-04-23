@@ -101,7 +101,6 @@ def set_user_status_online(request):
                         "status": "connected"
                     }
                 )
-
                 payload['response'] = "success"
             except Exception as e:
                 logging.error(f'user {request.user.id} - set_user_status_online view - unable to update users status as online - {str(e)}')
