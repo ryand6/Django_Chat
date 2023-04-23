@@ -38,23 +38,23 @@ urlpatterns = [
 ]
 
 # Serve the static HTML
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-urlpatterns += [
-    re_path(r'^site/(?P<path>.*)$', serve,
-        {'document_root': os.path.join(BASE_DIR, 'site'),
-         'show_indexes': True},
-        name='site_path'
-        ),
-]
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# urlpatterns += [
+#     re_path(r'^site/(?P<path>.*)$', serve,
+#         {'document_root': os.path.join(BASE_DIR, 'site'),
+#          'show_indexes': True},
+#         name='site_path'
+#         ),
+# ]
 
 # Serve the favicon
-urlpatterns += [
-    path('favicon.ico', serve, {
-            'path': 'favicon.ico',
-            'document_root': os.path.join(BASE_DIR, 'home/static'),
-        }
-    ),
-]
+# urlpatterns += [
+#     path('favicon.ico', serve, {
+#             'path': 'favicon.ico',
+#             'document_root': os.path.join(BASE_DIR, 'home/static'),
+#         }
+#     ),
+# ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
