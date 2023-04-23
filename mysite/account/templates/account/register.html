@@ -40,7 +40,7 @@
                     {% endfor %}
                     {% if form.non_field_errors %}
                     <div style="color: red;">
-                        <p>{% registration_form.non_field_errors %}</p>
+                        <p>{{ registration_form.non_field_errors }}</p>
                     </div>
                     {% endif %}
                     <button class="btn btn-lg btn-primary btn-block" style="margin-top: 1em;" type="submit">Register</button>
