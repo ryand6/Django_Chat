@@ -32,7 +32,6 @@ class RegisterView(View):
         user = request.user
         if user.is_authenticated:
             return HttpResponse(f'You are already authenticated as {user.email}')
-
         return render(request, 'account/register.html')
 
     def post(self, request):
@@ -47,9 +46,9 @@ class RegisterView(View):
         login(request, account)
         public_chatroom = PublicChat.objects.all().first()
         public_chatroom.users.add(account)
-        redirect_url = reverse("publicchat:all")
+        # redirect_url = reverse("publicchat:all")
 
-        return redirect(redirect_url)
+        return redirect('')
 
 
 class ProfileView(View):
