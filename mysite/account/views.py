@@ -46,9 +46,9 @@ class RegisterView(View):
         login(request, account)
         public_chatroom = PublicChat.objects.all().first()
         public_chatroom.users.add(account)
-        # redirect_url = reverse("publicchat:all")
+        redirect_url = reverse("publicchat:all")
 
-        return redirect('')
+        return redirect(redirect_url)
 
 
 class ProfileView(View):
