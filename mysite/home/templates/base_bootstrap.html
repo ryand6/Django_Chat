@@ -4,8 +4,8 @@
 <head>
     <title>{% block title %}{{ settings.APP_NAME }}{% endblock %}</title>
 
-    <!-- <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}"> -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css" crossorigin="anonymous"> -->
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/v4-shims.css">
@@ -28,7 +28,6 @@
 </head>
 <body>
 {% include 'base/base_css.html' %}
-{% include 'base/base_js.html' %}
 
     <style type="text/css">
         .main{
