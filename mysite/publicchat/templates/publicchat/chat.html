@@ -316,116 +316,119 @@
 
 </style>
 
-<div class="d-flex flex-row justify-content-center public-chatroom-banner-container">
-    <div class="d-flex flex-row public-chatroom-banner">
-        <span class="ml-5 mr-2 chatroom-banner-title">Public Chat</span>
-        <span class="chatroom-banner-text">|   General chatroom where you can share ideas, discuss projects, ask development related questions, and chat about anything in between!</span>
+<div id="main_content">
+    <div class="d-flex flex-row justify-content-center public-chatroom-banner-container">
+        <div class="d-flex flex-row public-chatroom-banner">
+            <span class="ml-5 mr-2 chatroom-banner-title">Public Chat</span>
+            <span class="chatroom-banner-text">|   General chatroom where you can share ideas, discuss projects, ask development related questions, and chat about anything in between!</span>
+        </div>
     </div>
-</div>
-<div class="container d-flex flex-row" id="id_chat_log_container">
-    <div class="d-flex flex-column justify-content-center chat-window" id="id_chat_window">
-        <div class="d-flex flex-column" id="chat_log">
-            {% for message in recent_messages %}
-            {% with prev_message=recent_messages|previous:forloop.counter0 %}
-                {% if message.created_at|date:"F d" != prev_message.created_at|date:"F d" or forloop.first %}
-                <div class="date-separator">
-                    <span class="date-separator-dashes"></span>
-                    <span class="chat-new-date" id="id_chat_new_date">{{ message.created_at|date:"j F Y" }}</span>
-                    <span class="date-separator-dashes"></span>
-                </div>
-                {% else %}
-                    {% if prev_message.user != message.user %}
-                    <p></p><p></p>
-                    {% endif %}
-                {% endif %}
-            {% endwith %}
-            <div class="chatroom-message-container">
-                <div class="chatroom-picture-container">
-                    {% with prev_message=recent_messages|previous:forloop.counter0 %}
-                        {% if message.created_at|date:"F d" != prev_message.created_at|date:"F d" or message.user != prev_message.user or forloop.first %}
-                        <a class="user-profile-link-image" href="{% url 'account:profile' pk=message.user.id %}">
-                            <img class="chatroom-message-user-pic" src="{{ message.user.profile_image.url }}" alt="{{ message.user.username }}'s profile image">
-                        </a>
+    <div class="container d-flex flex-row" id="id_chat_log_container">
+        <div class="d-flex flex-column justify-content-center chat-window" id="id_chat_window">
+            <div class="d-flex flex-column" id="chat_log">
+                {% for message in recent_messages %}
+                {% with prev_message=recent_messages|previous:forloop.counter0 %}
+                    {% if message.created_at|date:"F d" != prev_message.created_at|date:"F d" or forloop.first %}
+                    <div class="date-separator">
+                        <span class="date-separator-dashes"></span>
+                        <span class="chat-new-date" id="id_chat_new_date">{{ message.created_at|date:"j F Y" }}</span>
+                        <span class="date-separator-dashes"></span>
+                    </div>
+                    {% else %}
+                        {% if prev_message.user != message.user %}
+                        <p></p><p></p>
                         {% endif %}
-                    {% endwith %}
-                </div>
-                <div class="chatroom-message-body-container">
-                    <div class="chatroom-message-headers-container">
+                    {% endif %}
+                {% endwith %}
+                <div class="chatroom-message-container">
+                    <div class="chatroom-picture-container">
                         {% with prev_message=recent_messages|previous:forloop.counter0 %}
                             {% if message.created_at|date:"F d" != prev_message.created_at|date:"F d" or message.user != prev_message.user or forloop.first %}
-                                {% if request.user == message.user %}
-                                    <a class="user-profile-link-username" href="{% url 'account:profile' pk=message.user.id %}">
-                                        <span class="chatroom-message-author-current-user">
-                                            {{ message.user.username }}
-                                        </span>
-                                    </a>
-                                    {% else %}
-                                    <a class="user-profile-link-username" href="{% url 'account:profile' pk=message.user.id %}">
-                                        <span class="chatroom-message-author-other-user">
-                                            {{ message.user.username }}
-                                        </span>
-                                    </a>
-                                {% endif %}
+                            <a class="user-profile-link-image" href="{% url 'account:profile' pk=message.user.id %}">
+                                <img class="chatroom-message-user-pic" src="{{ message.user.profile_image.url }}" alt="{{ message.user.username }}'s profile image">
+                            </a>
                             {% endif %}
                         {% endwith %}
                     </div>
-                    <div class="chatroom-message-text-container">
-                        <span class="chatroom-message-body">
-                            {{ message.message }}
-                        </span>
-                        <span class="chatroom-message-timestamp">
-                            <!-- convert timestamp to user's local time -->
-                            {{ message.created_at|timezone:user_timezone|date:"H:i" }}
-                        </span>
+                    <div class="chatroom-message-body-container">
+                        <div class="chatroom-message-headers-container">
+                            {% with prev_message=recent_messages|previous:forloop.counter0 %}
+                                {% if message.created_at|date:"F d" != prev_message.created_at|date:"F d" or message.user != prev_message.user or forloop.first %}
+                                    {% if request.user == message.user %}
+                                        <a class="user-profile-link-username" href="{% url 'account:profile' pk=message.user.id %}">
+                                            <span class="chatroom-message-author-current-user">
+                                                {{ message.user.username }}
+                                            </span>
+                                        </a>
+                                        {% else %}
+                                        <a class="user-profile-link-username" href="{% url 'account:profile' pk=message.user.id %}">
+                                            <span class="chatroom-message-author-other-user">
+                                                {{ message.user.username }}
+                                            </span>
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="chatroom-message-text-container">
+                            <span class="chatroom-message-body">
+                                {{ message.message }}
+                            </span>
+                            <span class="chatroom-message-timestamp">
+                                <!-- convert timestamp to user's local time -->
+                                {{ message.created_at|timezone:user_timezone|date:"H:i" }}
+                            </span>
+                        </div>
                     </div>
                 </div>
+                {% if forloop.first %}
+                    {{ message.id|json_script:"lastSentMessageId" }}
+                {% endif %}
+                {% endfor %}
             </div>
-            {% if forloop.first %}
-                {{ message.id|json_script:"lastSentMessageId" }}
-            {% endif %}
-            {% endfor %}
-        </div>
-        <div class="d-flex flex-row p-4" id="id_message_bar">
-            <input class="mx-4" id="chat_message_input" placeholder="Write message..."></input>
-            <span id="chat_message_submit">
-                <span class="material-symbols-outlined">
-                    send
+            <div class="d-flex flex-row p-4" id="id_message_bar">
+                <input class="mx-4" id="chat_message_input" placeholder="Write message..."></input>
+                <span id="chat_message_submit">
+                    <span class="material-symbols-outlined">
+                        send
+                    </span>
                 </span>
-            </span>
-        </div>
-    </div>
-    <div class="d-flex flex-column" id="id_chat_users_container">
-        <div class="d-flex flex-column" id="id_chat_users_log">
-            <h6 class="chat-users-header">
-                Chatroom Members
-            </h6>
-            <hr class="chat-users-hr">
-            {% for user in chat_users %}
-            <div class="d-flex flex-row align-content-center chat-user-container">
-                <div class="d-flex flex-column mr-1 chat-user-picture-container">
-                    <a class="user-profile-link-image" href="{% url 'account:profile' pk=user.id %}">
-                        <img class="chat-user-image" src="{{ user.profile_image.url }}" alt="{{ user.username }}'s profile image">
-                        {% if user.online_status == "online" %}
-                        <div class="user-online-circle" id="id_user_{{ user.id }}_online_status"></div>
-                        {% elif user.online_status == "offline" %}
-                        <div class="user-offline-circle" id="id_user_{{ user.id }}_online_status"></div>
-                        {% elif user.online_status == "away" %}
-                        <div class="user-away-circle" id="id_user_{{ user.id }}_online_status"></div>
-                        {% endif %}
-                    </a>
-                </div>
-                <div class="d-flex flex-column ml-1 chat-user-username-container">
-                    <a class="user-profile-link-username" href="{% url 'account:profile' pk=user.id %}">
-                        <span class="chat-user-username">
-                            {{ user.username }}
-                        </span>
-                    </a>
-                </div>
             </div>
-            {% endfor %}
+        </div>
+        <div class="d-flex flex-column" id="id_chat_users_container">
+            <div class="d-flex flex-column" id="id_chat_users_log">
+                <h6 class="chat-users-header">
+                    Chatroom Members
+                </h6>
+                <hr class="chat-users-hr">
+                {% for user in chat_users %}
+                <div class="d-flex flex-row align-content-center chat-user-container">
+                    <div class="d-flex flex-column mr-1 chat-user-picture-container">
+                        <a class="user-profile-link-image" href="{% url 'account:profile' pk=user.id %}">
+                            <img class="chat-user-image" src="{{ user.profile_image.url }}" alt="{{ user.username }}'s profile image">
+                            {% if user.online_status == "online" %}
+                            <div class="user-online-circle" id="id_user_{{ user.id }}_online_status"></div>
+                            {% elif user.online_status == "offline" %}
+                            <div class="user-offline-circle" id="id_user_{{ user.id }}_online_status"></div>
+                            {% elif user.online_status == "away" %}
+                            <div class="user-away-circle" id="id_user_{{ user.id }}_online_status"></div>
+                            {% endif %}
+                        </a>
+                    </div>
+                    <div class="d-flex flex-column ml-1 chat-user-username-container">
+                        <a class="user-profile-link-username" href="{% url 'account:profile' pk=user.id %}">
+                            <span class="chat-user-username">
+                                {{ user.username }}
+                            </span>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
+
 
 {{ username|json_script:"username" }}
 {{ userid|json_script:"userid" }}
