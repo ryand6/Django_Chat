@@ -277,6 +277,43 @@
         white-space: nowrap; 
     }
 
+    #main_content.blur > *:not(#popup_container) {
+        filter: blur(6px);
+    }
+
+    #popup_container {
+        position: fixed;
+        bottom: 0;
+        left: 15%;
+        background-color: rgba(0, 0, 0, 0.75); /* semi-transparent background */
+        z-index: 999; /* make sure the pop-up is on top of everything else */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        width: 70%;
+        height: 60%;
+        animation: popup-anim 0.75s ease-in-out forwards;
+    }
+
+    #popup_message {
+        padding: 30px;
+        width: 75%;
+        height: 75%;
+        overflow-x: hidden;
+        overflow-y: visible;
+    }
+
+    @keyframes popup-anim {
+        from {
+            transform: translateY(-60%);
+        }
+        to {
+            transform: translateY(-40%);
+        }
+    }
+
 </style>
 
 <div class="d-flex flex-row justify-content-center public-chatroom-banner-container">
@@ -392,6 +429,7 @@
 
 {{ username|json_script:"username" }}
 {{ userid|json_script:"userid" }}
+{{ user.is_authenticated|json_script:"user_is_authenticated" }}
 
 <script type="text/javascript">
     var chatLog = document.getElementById('chat_log');
@@ -400,6 +438,25 @@
 {% include 'chat_scripts/chat_log_adjustments.html' %}
 
 <script type="text/javascript">
+
+    var userIsAuthenticated = JSON.parse(document.getElementById('user_is_authenticated').textContent);
+
+    if (!userIsAuthenticated) {
+        var mainContent = document.getElementById("main_content");
+        var popupContainer = document.createElement("div");
+        popupContainer.setAttribute("id", "popup_container");
+        popupContainer.innerHTML = `<div id="popup_message"><h2 id="popup_header">Welcome to Chat DJ4E!</h2><br><br>
+            <p>Please register for an account to gain access to the public chatroom. When registered, you can also connect with other users of the site and send private messages.</p><br>
+            <p>Chat DJ4E is designed as a space for aspiring and early in career developers to connect with eachother, share ideas and help solve problems. However, anyone is welcome to use the site and participate.</p><br>
+            <p>This site was created as an educational tool, and started as a final project for Dr. Chuck Severance's Django For Everybody (DJ4E) course. Any and all feedback is highly encouraged 
+            so please feel free to drop me a message under the username @ryand6 with any questions, issues, or if you just want a chat - if you've come from Dr Chuck's course then say hi! :)</p><br>
+            <p>The site is currently only suitable for desktop browsers, but there is consideration to make the site mobile friendly also. Potential future features include code snippets and message reactions. If you have
+            any feature suggestions you wish to see, let me know.</p><br><p>Enjoy!</p></div>`
+        mainContent.appendChild(popupContainer);
+        popupContainer.classList.add("show");
+        mainContent.classList.add("blur");
+    }
+
     try {
         var lastLoadedMessageId = JSON.parse(document.getElementById('lastSentMessageId').textContent);
     } catch (error) {
