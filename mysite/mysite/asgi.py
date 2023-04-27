@@ -15,14 +15,15 @@ from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
-from publicchat.consumers import PublicChatRoomConsumer
-from privatechat.consumers import PrivateChatRoomConsumer, AllPrivateChatRoomsConsumer
-from notifications.consumers import NotificationConsumer, OnlineStatusConsumer
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
 
 django_asgi_app = get_asgi_application()
 django.setup()
+
+from publicchat.consumers import PublicChatRoomConsumer
+from privatechat.consumers import PrivateChatRoomConsumer, AllPrivateChatRoomsConsumer
+from notifications.consumers import NotificationConsumer, OnlineStatusConsumer
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
