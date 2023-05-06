@@ -59,6 +59,7 @@ INSTALLED_APPS = [
 
     # Extensions - installed with pip3 / requirements.txt
     'django_extensions',
+    'django_user_agents',
     'crispy_forms',
     'rest_framework',
     'social_django',
@@ -78,6 +79,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'django_user_agents.middleware.UserAgentMiddleware',
 ]
 
 TEMPLATES = [
