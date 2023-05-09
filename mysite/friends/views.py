@@ -187,7 +187,7 @@ def cancel_friend_request(request, *args, **kwargs):
                 friend_notification = FriendNotifications.objects.get(friend_request_id=sent_friend_request_id)
                 friend_notification.engaged = True
                 friend_notification.save()
-            except:
+            except Exception as e:
                 logger.warning(f'user {user.id} - cancel_friend_request view - no friend notification found - {str(e)}')
             
             # should only be one request as combination of sender and user is unique, but handle and log just in case
