@@ -19,9 +19,8 @@ class PublicChatView(View):
         userid = request.user.id
         username = request.user.username
         try:
-            try:
-                chatroom = PublicChat.objects.all().first()
-            except PublicChat.DoesNotExist:
+            chatroom = PublicChat.objects.all().first()
+            if chatroom is None:
                 chatroom = PublicChat(title="public_chat")
                 chatroom.save()
             # if database is empty/reset and no one has been added to the public chatroom users list - add the
