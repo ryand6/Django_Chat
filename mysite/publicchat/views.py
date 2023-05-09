@@ -19,7 +19,10 @@ class PublicChatView(View):
         userid = request.user.id
         username = request.user.username
         try:
-            chatroom = PublicChat.objects.all().first()
+            try:
+                chatroom = PublicChat.objects.all().first()
+            except PublicChat.DoesNotExist:
+                chatroom = PublicChat.objects.create(title="public_chat")
             # if database is empty/reset and no one has been added to the public chatroom users list - add the
             # superuser to the users list so that when new users register (the point where users are added to public chatroom)
             # it won't throw an exception as the instance of the chatroom has been initialised and has atleast 1x user

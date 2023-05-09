@@ -641,15 +641,15 @@
     };
 
     document.querySelector('#chat_message_submit').onclick = function(e) {
-            var message = $("#chat_message_input").data('emojioneArea').getText();
-            chatSocket.send(JSON.stringify({
-                'message': message
-            }));
-            // clears input element text - can't clear text just by setting elements value to empty
-            // string when using emoji picker
-            var emojioneAreas = $("#chat_message_input").emojioneArea(); 
-            emojioneAreas.data("emojioneArea").setText('');
-        };
+        var message = $("#chat_message_input").data('emojioneArea').getText();
+        chatSocket.send(JSON.stringify({
+            'message': message
+        }));
+        // clears input element text - can't clear text just by setting elements value to empty
+        // string when using emoji picker
+        var emojioneAreas = $("#chat_message_input").emojioneArea(); 
+        emojioneAreas.data("emojioneArea").setText('');
+    };
 
     
     chatLog.addEventListener('scroll', function() {
