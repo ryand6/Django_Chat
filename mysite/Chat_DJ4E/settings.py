@@ -226,7 +226,7 @@ if (len(sys.argv) >= 2 and sys.argv[1] == 'runserver'):
         'loggers': {
             'django': {
                 'handlers': ['file'],
-                'level': 'WARNING',
+                'level': 'DEBUG',
                 'propagate': False,
             },
         }
