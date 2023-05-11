@@ -181,21 +181,22 @@ def send_notification(sender, instance, **kwargs):
 
 @receiver(post_save, sender=FriendRequest)
 def send_friend_notification(sender, instance, **kwargs):
+    logging.error("send_friend_notification called")
     channel_layer = get_channel_layer()
     if instance.is_active_request:
-        logger.error('request received')
+        logging.error('request received')
         status = "friend request received"
         recipient = instance.receiver
         sender = instance.sender
         friend_request_id = instance.id
     elif instance.sender.friends.filter(id=instance.receiver.id).exists():
-        logger.error('request accepted')
+        logging.error('request accepted')
         status = "friend request accepted"
         recipient = instance.sender
         sender = instance.receiver
         friend_request_id = None
     else:
-        logger.error('send_friend_notification in notifications consumer called without there being a new valid instance of a friend notification')
+        logging.error('send_friend_notification in notifications consumer called without there being a new valid instance of a friend notification')
         return
     profile_pic = instance.sender.profile_image.url
     notification = NotificationConsumer.add_friend_notification(recipient=recipient, sender=sender, status=status, friend_request_id=friend_request_id)
