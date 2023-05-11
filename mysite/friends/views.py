@@ -62,6 +62,7 @@ def is_friend_request_active(sender, receiver):
 
 
 def send_friend_request(request, *args, **kwargs):
+    logging.error("friend request sent !")
     # using ajax request so that page isn't refreshed if friend request cannot be sent for some reason
     user = request.user
     payload = {}

@@ -78,6 +78,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         return notification
     
     def add_friend_notification(recipient, sender, status, friend_request_id):
+        logging.error("add_friend_notification called")
         received_request = False
         accepted_request = False
         if status == "friend request received":
