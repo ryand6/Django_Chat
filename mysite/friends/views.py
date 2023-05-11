@@ -147,7 +147,7 @@ def decline_friend_request(request, *args, **kwargs):
                     friend_notification = FriendNotifications.objects.get(friend_request_id=received_friend_request_id)
                     friend_notification.engaged = True
                     friend_notification.save()
-                except:
+                except Exception as e:
                     logger.warning(f'user {user.id} - decline_friend_request view - no friend notification found - {str(e)}')
                 if received_friend_request.receiver == user:
                     if received_friend_request.is_active_request == False:
