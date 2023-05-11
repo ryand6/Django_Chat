@@ -551,17 +551,18 @@
                 }
                 updateFriendNotifications();
             }
-
-            notificationSocket.onclose = function(e) {
-                console.error('Notification socket closed unexpectedly');
-                location.reload();
-            };
-
-            notificationSocket.onerror = function(e) {
-                // Handle websocket errors
-                console.error('Websocket error', event);
-            };
         }
+
+        notificationSocket.onclose = function(e) {
+            console.error('Notification socket closed unexpectedly');
+            location.reload();
+        };
+
+        notificationSocket.onerror = function(e) {
+            // Handle websocket errors
+            console.error('Websocket error', event);
+        };
+    
     }
 
 

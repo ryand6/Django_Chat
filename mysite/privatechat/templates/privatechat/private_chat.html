@@ -673,17 +673,6 @@
         if (Object.keys(data).length == 2) {
             const userid = data.user_id;
             const onlineStatus = data.status;
-            // handles user online status icon - not implemented on private chats currently
-
-            // const statusElement = document.getElementById(`id_user_${userid}_online_status`);
-            // if (onlineStatus == 'connected') {
-            //     statusElement.classList.remove('user-offline-circle');
-            //     statusElement.classList.add('user-online-circle');
-            // }
-            // else if (onlineStatus == 'disconnected') {
-            //     statusElement.classList.remove('user-online-circle');
-            //     statusElement.classList.add('user-offline-circle');
-            // }
         } else {
             const messagesElement = document.querySelector('#chat_log');
 
