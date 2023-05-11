@@ -554,8 +554,7 @@
         }
 
         notificationSocket.onclose = function(e) {
-            console.error('Notification socket closed unexpectedly');
-            location.reload();
+            console.error('Notification socket closed');
         };
 
         notificationSocket.onerror = function(e) {
