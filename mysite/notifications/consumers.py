@@ -217,3 +217,5 @@ def send_friend_notification(sender, instance, **kwargs):
             'timestamp': notification_timestamp
         }
     )
+
+post_save.connect(send_friend_notification, sender=FriendRequest)   
