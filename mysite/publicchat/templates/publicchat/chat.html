@@ -620,11 +620,6 @@
         }
     }
 
-    chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-            console.log(e);
-        };
-
     chatSocket.onerror = function(e) {
         // Handle websocket errors
         console.error('Websocket error', event);
