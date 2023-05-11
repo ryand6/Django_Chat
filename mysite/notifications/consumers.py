@@ -155,6 +155,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
 # send a notification to them alerting them of who sent the message
 @receiver(post_save, sender=PrivateMessages)
 def send_notification(sender, instance, **kwargs):
+    logging.debug(post_save.receivers)
     channel_layer = get_channel_layer()
     recipients = instance.room.users.all()
     room_id = instance.room.id
@@ -182,16 +183,16 @@ def send_notification(sender, instance, **kwargs):
 
 @receiver(post_save, sender=FriendRequest)
 def send_friend_notification(sender, instance, **kwargs):
-    logging.error("send_friend_notification called")
+    logging.debug("send_friend_notification called")
     channel_layer = get_channel_layer()
     if instance.is_active_request:
-        logging.error('request received')
+        logging.debug('request received')
         status = "friend request received"
         recipient = instance.receiver
         sender = instance.sender
         friend_request_id = instance.id
     elif instance.sender.friends.filter(id=instance.receiver.id).exists():
-        logging.error('request accepted')
+        logging.debug('request accepted')
         status = "friend request accepted"
         recipient = instance.sender
         sender = instance.receiver
