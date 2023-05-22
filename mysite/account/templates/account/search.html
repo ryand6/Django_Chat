@@ -102,7 +102,19 @@
                         </div>
                         {% if account.0 != request.user %}
                         <div class="d-flex flex-row card-right align-items-center">
-                            {% if account.1 == "1" %}
+                            {% if account.1 == "2" %}
+                            <div class="d-flex flex-column">
+                                <div class="d-flex flex-row align-items-center">
+                                    <span class="received-friend-request-text align-items-center mr-2 mb-1">{{ account.username }} has sent you a friend request</span>
+                                </div>
+                                <div class="d-flex flex-row align-items-center">
+                                    <a class="btn account-button confirm-friend-request mr-1" id="id_confirm_friend_request" data-request-url="{% url 'friends:accept_friend_request'  %}" 
+                                    data-friend-request-id="{{ received_friend_request_id }}" onclick='acceptFriendRequest(this)'>Confirm</a>
+                                    <a class="btn btn-secondary decline-friend-request ml-1" id="id_decline_friend_request" data-request-url="{% url 'friends:decline_friend_request'  %}" 
+                                    data-friend-request-id="{{ received_friend_request_id }}" onclick='declineFriendRequest(this)'>Decline</a>
+                                </div>
+                            </div>
+                            {% elif account.1 == "1" %}
                             <div class="d-flex flex-row friend-text-container justify-content-end p-2">
                                 <a class="d-flex btn search-profile-button mr-2 send-friend-private-message" data-friend-id="{{ account.0.id }}" data-request-url="{% url 'privatechat:create_chat' %}"
                                 onclick='sendFriendMessage(this);'>
