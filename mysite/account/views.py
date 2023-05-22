@@ -157,8 +157,11 @@ class AccountSearch(View):
                 
                 accounts = []
                 for account in results:
+                    # check if account has sent user a friend request
+                    if FriendRequest.objects.filter(sender=account, receiver=request.user, is_active_request=True):
+                        accounts.append((account, "2", FriendRequest.objects.get(sender=account, receiver=request.user, is_active_request=True).id))
                     # check if account is a friend of user
-                    if account in friend_list.friends.all():
+                    elif account in friend_list.friends.all():
                         accounts.append((account, "1"))
                     # check if friend request has already been sent to account
                     elif FriendRequest.objects.filter(sender=request.user, receiver=account, is_active_request=True):

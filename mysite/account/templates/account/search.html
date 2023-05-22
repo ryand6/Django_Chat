@@ -69,6 +69,19 @@
         width: 70%;
     }
 
+    .account-button {
+        background-color: #6d6f73;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+        font-weight: bold;
+        color: white;
+    }
+
+    .account-button:hover {
+        background-color: #9779a8;
+        color: white;
+    }
+
 </style>
 
 <div class="container">
@@ -102,7 +115,19 @@
                         </div>
                         {% if account.0 != request.user %}
                         <div class="d-flex flex-row card-right align-items-center">
-                            {% if account.1 == "1" %}
+                            {% if account.1 == "2" %}
+                            <div class="d-flex flex-column ml-auto p-2">
+                                <div class="d-flex flex-row align-items-center">
+                                    <span class="received-friend-request-text align-items-center">{{ account.username }} has sent you a friend request</span>
+                                </div>
+                                <div class="d-flex flex-row align-items-center justify-content-end">
+                                    <a class="btn account-button confirm-friend-request mr-1" id="id_confirm_friend_request" data-request-url="{% url 'friends:accept_friend_request'  %}" 
+                                    data-friend-request-id="{{ account.2 }}" onclick='acceptFriendRequest(this)'>Confirm</a>
+                                    <a class="btn btn-secondary decline-friend-request ml-1" id="id_decline_friend_request" data-request-url="{% url 'friends:decline_friend_request'  %}" 
+                                    data-friend-request-id="{{ account.2 }}" onclick='declineFriendRequest(this)'>Decline</a>
+                                </div>
+                            </div>
+                            {% elif account.1 == "1" %}
                             <div class="d-flex flex-row friend-text-container justify-content-end p-2">
                                 <a class="d-flex btn search-profile-button mr-2 send-friend-private-message" data-friend-id="{{ account.0.id }}" data-request-url="{% url 'privatechat:create_chat' %}"
                                 onclick='sendFriendMessage(this);'>
