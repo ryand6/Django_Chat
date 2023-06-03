@@ -786,7 +786,7 @@
                 for (var i = 0; i < textInput.length; i++) {
                     textInput[i].style.visibility = "visible";
                 }
-                messageBar.style.height = "80px";
+                messageBar.style.height = "10%";
                 codeSnippetText = "";
             }
             else {
@@ -879,12 +879,12 @@
                         if (isProfileLinkRequired) {
                             let profileImageLink = document.createElement('a');
                             profileImageLink.classList.add("user-profile-link-image");
-                            profileImageLink.setAttribute("href", `/account/${userid}/`);
+                            profileImageLink.href = "/account/" + userid + "/";
 
                             let profileImage = document.createElement('img');
                             profileImage.classList.add("chatroom-message-user-pic");
-                            profileImage.setAttribute("src", `${profile_pic}`);
-                            profileImage.setAttribute("src", `${username}'s profile image`);
+                            profileImage.setAttribute("src", profile_pic);
+                            profileImage.alt = username + "'s profile image";
                             profileImageLink.appendChild(profileImage);
                             pictureContainer.appendChild(profileImageLink);
 

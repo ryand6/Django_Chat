@@ -39,6 +39,7 @@ class PrivateChatRoomConsumer(AsyncWebsocketConsumer):
         # function will be called in each instance of PublicChatRoomConsumer
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
+        codeFlag = text_data_json["code"]
         message = sanitise_text(message)
         if not message:
             return
@@ -59,13 +60,14 @@ class PrivateChatRoomConsumer(AsyncWebsocketConsumer):
                 last_message_date = str(last_message.created_at)[:10]
                 current_message_date = str(datetime.date.today())
                 if last_message.user == current_user and last_message_date == current_message_date:
+                    print(True)
                     username = ""
                     profile_pic = ""
             try:
                 self.chatroom = await database_sync_to_async(PrivateChat.objects.get)(pk=self.room_id)
             except PrivateChat.DoesNotExist:
                 raise PermissionDenied
-            await self.save_message(current_user, message)
+            await self.save_message(current_user, message, codeFlag)
             try:
                 # access the user model associated with the last posted message in the chat
                 last_message = await database_sync_to_async(PrivateMessages.objects.select_related('user').last)()
@@ -79,6 +81,7 @@ class PrivateChatRoomConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'chat.message',
                     'message': message,
+                    'code': codeFlag,
                     'username': username,
                     'profile_pic': profile_pic,
                     'timestamp': timestamp,
@@ -91,6 +94,7 @@ class PrivateChatRoomConsumer(AsyncWebsocketConsumer):
         # stores the "message" data from the receive functions event and stores in variable
         message = event['message']
         username = event['username']
+        code = event['code']
         profile_pic = event['profile_pic']
         timestamp = event['timestamp']
         username_hidden = event['username_hidden']
@@ -100,6 +104,7 @@ class PrivateChatRoomConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
                 'message': message,
                 'username': username,
+                'code': code,
                 'profile_pic': profile_pic,
                 'timestamp': timestamp,
                 'username_hidden': username_hidden,
@@ -121,11 +126,12 @@ class PrivateChatRoomConsumer(AsyncWebsocketConsumer):
         user.online = online
         user.save()
 
-    async def save_message(self, user, message):
+    async def save_message(self, user, message, codeFlag):
         await database_sync_to_async(PrivateMessages.objects.create)(
             room=self.chatroom,
             user=user,
             message=message,
+            code=codeFlag
         )
 
     async def disconnect(self, close_code):

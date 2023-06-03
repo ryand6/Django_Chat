@@ -214,7 +214,7 @@ def get_previous_messages_private(request):
         previous_messages = PrivateMessages.objects.filter(room=chatroom, id__lt=oldest_message.id).order_by('-id')[:40]
         response_data = {'messages': []}
         for message in previous_messages:
-            message_data = {'id': message.id, 'userid': message.user.id, 'message': message.message, 'timestamp': message.created_at.isoformat(), 'username': message.user.username, 'profile_pic': message.user.profile_image.url}
+            message_data = {'id': message.id, 'userid': message.user.id, 'message': message.message, 'code': message.code, 'timestamp': message.created_at.isoformat(), 'username': message.user.username, 'profile_pic': message.user.profile_image.url}
             response_data['messages'].append(message_data)
         return JsonResponse(response_data)
     

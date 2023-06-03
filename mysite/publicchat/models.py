@@ -29,6 +29,7 @@ class PublicMessages(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     message = models.TextField(unique=False, blank=False)
     code = models.BooleanField(default=False)
+    language = models.TextField(blank=True, null=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
 
     # overwrite objects using newly created manager
