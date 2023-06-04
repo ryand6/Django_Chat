@@ -838,10 +838,9 @@
         let textInput = document.getElementsByClassName('emojionearea');
         let messageBar = document.getElementById('id_message_bar');
         let codeSnippetPopup = document.getElementById('id_code_snippet_popup');
+        var dropdownContent = document.getElementById("dropdownContent");
+        dropdownContent.style.display = dropdownContent.style.display === "block" ? "none" : "block";
         if (codeEditor === null) {
-            var dropdownContent = document.getElementById("dropdownContent");
-            dropdownContent.style.display = dropdownContent.style.display === "block" ? "none" : "block";
-
             codeSnippetPopup.style.setProperty("visibility", "hidden", "important");
             for (var i = 0; i < textInput.length; i++) {
                 textInput[i].style.visibility = "hidden";
