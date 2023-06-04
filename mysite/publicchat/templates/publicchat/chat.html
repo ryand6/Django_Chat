@@ -376,6 +376,52 @@
         width: 90%;
     }
 
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        width: 150px;
+        height: 250px;
+        overflow-x: auto;
+        overflow-y: auto;
+        padding: 10px;
+        background-color: lightgrey;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 999;
+        bottom: calc(100% + 10px);
+        color: black;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .dropdown-content input[type="text"] {
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 10px;
+    }
+
+    .dropdown-content ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .dropdown-content li {
+        padding: 5px;
+        cursor: pointer;
+        color: black;
+        font-weight: normal;
+        text-align: left;
+    }
+
+    .dropdown-content li:hover {
+        background-color: #ddd;
+    }
+
 </style>
 
 <div id="main_content">
@@ -434,7 +480,7 @@
                         </div>
                         <div class="chatroom-message-text-container">
                             {% if message.code %}
-                            <div id="code_snippet_{{ message.id }}" class="code-snippet" data-content="{{ message.message }}"></div>
+                            <div id="code_snippet_{{ message.id }}" class="code-snippet" data-content="{{ message.message }}" data-language="{{ message.language }}"></div>
                             {% else %}
                             <span class="chatroom-message-body">
                                 {{ message.message }}
@@ -454,12 +500,23 @@
             </div>
             <div class="d-flex flex-row p-4" id="id_message_bar">
                 <input class="mx-2" id="chat_message_input" placeholder="Write message..."></input>
-                <span id="code_snippet_toggle" class="mr-2">
-                    <span class="code-snippet-popup" id="id_code_snippet_popup">Code snippets</span>
-                    <span class="material-symbols-outlined">
-                        code
+                <div class="dropdown">
+                    <span id="code_snippet_toggle" class="mr-2">
+                        <span class="code-snippet-popup" id="id_code_snippet_popup">Code snippets</span>
+                        <span class="material-symbols-outlined">
+                            code
+                        </span>
                     </span>
-                </span>
+                    <div id="dropdownContent" class="dropdown-content">
+                        <p class="text-align-center">Select language for syntax highlighting: </p>
+                        <input type="text" id="searchInput" onkeyup="filterOptions()" placeholder="Search...">
+                        <ul id="optionsList">
+                            {% for option in language_options %}
+                                <li onclick="selectOption('{{ option }}')">{{ option }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
                 <span id="chat_message_submit">
                     <span class="material-symbols-outlined">
                         send
@@ -513,14 +570,45 @@
 
 <script type="text/javascript">
 
+    var selectedLanguage = "";
+
+    function selectOption(option) {
+        var dropdownContent = document.getElementById("dropdownContent");
+        dropdownContent.style.display = "none";
+        // Store the selected option in a variable for further use
+        selectedLanguage = option.replace(" ", "_");
+        var editor = ace.edit("editor");
+        var mode = "ace/mode/" + selectedLanguage;
+        editor.session.setMode(mode);
+    }
+
+    function filterOptions() {
+        var input, filter, ul, li, i;
+        input = document.getElementById("searchInput");
+        filter = input.value.toUpperCase();
+        ul = document.getElementById("optionsList");
+        li = ul.getElementsByTagName("li");
+        for (i = 0; i < li.length; i++) {
+            var textValue = li[i].textContent || li[i].innerText;
+            if (textValue.toUpperCase().indexOf(filter) > -1) {
+            li[i].style.display = "";
+            } else {
+            li[i].style.display = "none";
+            }
+        }
+    }
+
     function configureCodeSnippets() {
         var codeSnippetDivs = document.getElementsByClassName("code-snippet");
         Array.from(codeSnippetDivs).forEach(function(div) {
             var content = div.getAttribute("data-content");
+            var language = div.getAttribute("data-language");
             var editor = ace.edit(div);
+            var mode = "ace/mode/" + language;
             editor.setValue(content);
             editor.setReadOnly(true);
             editor.setTheme("ace/theme/monokai");
+            editor.session.setMode(mode);
             editor.setOptions({
                 readOnly: true,
                 highlightActiveLine: false,
@@ -692,6 +780,7 @@
             bodyElement.classList.add('code-snippet');
             bodyElement.setAttribute('id', 'code_snippet_temp');
             bodyElement.setAttribute('data-content', data.message);
+            bodyElement.setAttribute('data-language', data.language);
             messageTextElement.appendChild(bodyElement);
         } else {
             const bodyElement = document.createElement('span');
@@ -741,66 +830,75 @@
     var codeSnippetText;
 
     document.querySelector('#code_snippet_toggle').onclick = function(e) {
-            let codeEditor = document.getElementById('editor');
-            let textInput = document.getElementsByClassName('emojionearea');
-            let messageBar = document.getElementById('id_message_bar');
-            let codeSnippetPopup = document.getElementById('id_code_snippet_popup');
-            if (codeEditor === null) {
-                codeSnippetPopup.style.setProperty("visibility", "hidden", "important");
-                for (var i = 0; i < textInput.length; i++) {
-                    textInput[i].style.visibility = "hidden";
-                }
-                messageBar.style.height = "25%";
-                let codeEditor = document.createElement('div');
-                codeEditor.setAttribute('id', 'editor');
-                messageBar.insertBefore(codeEditor, messageBar.firstChild);
-                var editor = ace.edit("editor");
-                editor.setTheme("ace/theme/monokai");
-                editor.getSession().on('change', function () {
-                    codeSnippetText = editor.getSession().getValue();
-                })
+        let codeEditor = document.getElementById('editor');
+        let textInput = document.getElementsByClassName('emojionearea');
+        let messageBar = document.getElementById('id_message_bar');
+        let codeSnippetPopup = document.getElementById('id_code_snippet_popup');
+        if (codeEditor === null) {
+            var dropdownContent = document.getElementById("dropdownContent");
+            dropdownContent.style.display = dropdownContent.style.display === "block" ? "none" : "block";
+
+            codeSnippetPopup.style.setProperty("visibility", "hidden", "important");
+            for (var i = 0; i < textInput.length; i++) {
+                textInput[i].style.visibility = "hidden";
             }
-            else {
-                messageBar.removeChild(codeEditor);
-                for (var i = 0; i < textInput.length; i++) {
-                    textInput[i].style.visibility = "visible";
-                }
-                messageBar.style.height = "10%";
-                codeSnippetText = "";
+            messageBar.style.height = "25%";
+            let codeEditor = document.createElement('div');
+            codeEditor.setAttribute('id', 'editor');
+            messageBar.insertBefore(codeEditor, messageBar.firstChild);
+            var editor = ace.edit("editor");
+            editor.setTheme("ace/theme/monokai");
+            editor.getSession().on('change', function () {
+                codeSnippetText = editor.getSession().getValue();
+            })
+        }
+        else {
+            selectedLanguage = "";
+            messageBar.removeChild(codeEditor);
+            for (var i = 0; i < textInput.length; i++) {
+                textInput[i].style.visibility = "visible";
             }
-        };
+            messageBar.style.height = "10%";
+            codeSnippetText = "";
+        }
+    };
 
     document.querySelector('#chat_message_submit').onclick = function(e) {
-            let textInput = document.getElementsByClassName('emojionearea');
-            let codeFlag = false;
-            if (textInput[0].style.visibility == 'hidden') {
-                var message = codeSnippetText;
-                codeFlag = true;
-                chatSocket.send(JSON.stringify({
-                    'message': message,
-                    'code': codeFlag
-                }));
-                let messageBar = document.getElementById('id_message_bar');
-                let codeEditor = document.getElementById('editor');
-                messageBar.removeChild(codeEditor);
-                for (var i = 0; i < textInput.length; i++) {
-                    textInput[i].style.visibility = "visible";
-                }
-                messageBar.style.height = "10%";
-                codeSnippetText = "";
+        let textInput = document.getElementsByClassName('emojionearea');
+        let codeFlag = false;
+        if (textInput[0].style.visibility == 'hidden') {
+            var message = codeSnippetText;
+            codeFlag = true;
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'code': codeFlag,
+                'language': selectedLanguage
+            }));
+            let messageBar = document.getElementById('id_message_bar');
+            let codeEditor = document.getElementById('editor');
+            messageBar.removeChild(codeEditor);
+            for (var i = 0; i < textInput.length; i++) {
+                textInput[i].style.visibility = "visible";
             }
-            else {
-                var message = $("#chat_message_input").data('emojioneArea').getText();
-                // clears input element text - can't clear text just by setting elements value to empty
-                // string when using emoji picker
-                var emojioneAreas = $("#chat_message_input").emojioneArea(); 
-                emojioneAreas.data("emojioneArea").setText('');
-                chatSocket.send(JSON.stringify({
-                    'message': message,
-                    'code': codeFlag
-                }));
-            }
-        };
+            messageBar.style.height = "10%";
+            var dropdownContent = document.getElementById("dropdownContent");
+            dropdownContent.style.display = "none";
+            codeSnippetText = "";
+            selectedLanguage = "";
+        }
+        else {
+            var message = $("#chat_message_input").data('emojioneArea').getText();
+            // clears input element text - can't clear text just by setting elements value to empty
+            // string when using emoji picker
+            var emojioneAreas = $("#chat_message_input").emojioneArea(); 
+            emojioneAreas.data("emojioneArea").setText('');
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'code': codeFlag,
+                'language': selectedLanguage
+            }));
+        }
+    };
 
     
     chatLog.addEventListener('scroll', function() {
@@ -820,6 +918,7 @@
                         let username = message.username;
                         let timestamp = message.timestamp;
                         let userid = message.userid;
+                        let language = message.language;
                         let timestampAsObj = new Date(timestamp);
                         let timestampFormattedAsDate = formatter.format(timestampAsObj);
                         let timestampFormattedAsTime = timestampAsObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -919,6 +1018,7 @@
                             bodyElement.classList.add('code-snippet');
                             bodyElement.setAttribute('id', 'code_snippet_temp');
                             bodyElement.setAttribute('data-content', text);
+                            bodyElement.setAttribute('data-language', language);
                             textContainer.appendChild(bodyElement);
                         } else {
                             const bodyElement = document.createElement('span');

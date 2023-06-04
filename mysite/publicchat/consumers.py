@@ -25,6 +25,7 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
         codeFlag = text_data_json["code"]
+        language = text_data_json["language"]
         message = sanitise_text(message)
         if not message:
             return
@@ -51,7 +52,7 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
                 self.chatroom = await database_sync_to_async(PublicChat.objects.get)(title=self.room_group_name)
             except PublicChat.DoesNotExist:
                 self.chatroom = await database_sync_to_async(PublicChat.objects.create)(title=self.room_group_name)
-            await self.save_message(current_user, message, codeFlag)
+            await self.save_message(current_user, message, codeFlag, language)
             try:
                 # access the user model associated with the last posted message in the chat
                 last_message = await database_sync_to_async(PublicMessages.objects.select_related('user').last)()
@@ -66,6 +67,7 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
                     'type': 'chat.message',
                     'message': message,
                     'code': codeFlag,
+                    'language': language,
                     'username': username,
                     'profile_pic': profile_pic,
                     'timestamp': timestamp,
@@ -79,6 +81,7 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
         message = event['message']
         username = event['username']
         code = event['code']
+        language = event['language']
         profile_pic = event['profile_pic']
         timestamp = event['timestamp']
         username_hidden = event['username_hidden']
@@ -88,18 +91,20 @@ class PublicChatRoomConsumer(AsyncWebsocketConsumer):
                 'message': message,
                 'username': username,
                 'code': code,
+                'language': language,
                 'profile_pic': profile_pic,
                 'timestamp': timestamp,
                 'username_hidden': username_hidden
             }))
 
 
-    async def save_message(self, user, message, codeFlag):
+    async def save_message(self, user, message, codeFlag, language):
             await database_sync_to_async(PublicMessages.objects.create)(
                 room=self.chatroom,
                 user=user,
                 message=message,
-                code=codeFlag
+                code=codeFlag,
+                language = language
             )
 
 
