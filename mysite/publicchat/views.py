@@ -1,7 +1,7 @@
 import logging
 import os
 
-from mysite import settings
+from Chat_DJ4E import settings
 
 from django.views import View
 from django.http import JsonResponse
