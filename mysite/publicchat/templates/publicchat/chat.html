@@ -48,11 +48,12 @@
     }
 
     #id_message_bar{
-        height: 80px;
+        height: 10%;
         width: 100%;
         -ms-flex-align: stretch;
         background-color: #4b4b4d;
         align-items: center;
+        position: relative;
     }
 
     .chatroom-message-user-pic{
@@ -117,6 +118,7 @@
         display: flex;
         flex-direction: row;
         align-items: center;
+        height: auto;
     }
 
     .chatroom-message-text-container{
@@ -314,6 +316,111 @@
         }
     }
 
+    #code_snippet_toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 10%;
+        background-color: #6d6f73;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out; 
+    }
+
+    #code_snippet_toggle:hover {
+        background-color: #9779a8;
+    }
+
+    #code_snippet_toggle .code-snippet-popup {
+        color: #666;
+        position: absolute;
+        font-family: sans-serif;
+        white-space: pre-wrap;
+        padding: 5px 7px;
+        z-index: -1;
+        font-size: 14px;
+        border-radius: 2px;
+        background: #fff;
+        visibility: hidden;
+        top: 95%;
+        opacity: 0;
+        -o-transition: all .5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        -webkit-transition: all .5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        -moz-transition: all .5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        transition: all .5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    #code_snippet_toggle:hover .code-snippet-popup {
+        top: 87%;
+        visibility: visible;
+        opacity: 1;
+        z-index: 10;
+    }
+
+    #editor { 
+        position: absolute;
+        height: 90%;
+        width: 85%;
+    }
+
+    .code-snippet {
+        display: block;
+        white-space: pre-wrap;
+        padding: 10px;
+        border-radius: 4px;
+        font-family: monospace;
+        height: auto; /* Adjust the height as needed */
+        overflow: hidden;
+        width: 90%;
+    }
+
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        width: 150px;
+        height: 250px;
+        overflow-x: auto;
+        overflow-y: auto;
+        padding: 10px;
+        background-color: lightgrey;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 999;
+        bottom: calc(100% + 10px);
+        color: black;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .dropdown-content input[type="text"] {
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 10px;
+    }
+
+    .dropdown-content ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .dropdown-content li {
+        padding: 5px;
+        cursor: pointer;
+        color: black;
+        font-weight: normal;
+        text-align: left;
+    }
+
+    .dropdown-content li:hover {
+        background-color: #ddd;
+    }
+
 </style>
 
 <div id="main_content">
@@ -371,9 +478,13 @@
                             {% endwith %}
                         </div>
                         <div class="chatroom-message-text-container">
+                            {% if message.code %}
+                            <div id="code_snippet_{{ message.id }}" class="code-snippet" data-content="{{ message.message }}" data-language="{{ message.language }}"></div>
+                            {% else %}
                             <span class="chatroom-message-body">
                                 {{ message.message }}
                             </span>
+                            {% endif %}
                             <span class="chatroom-message-timestamp">
                                 <!-- convert timestamp to user's local time -->
                                 {{ message.created_at|timezone:user_timezone|date:"H:i" }}
@@ -387,7 +498,24 @@
                 {% endfor %}
             </div>
             <div class="d-flex flex-row p-4" id="id_message_bar">
-                <input class="mx-4" id="chat_message_input" placeholder="Write message..."></input>
+                <input class="mx-2" id="chat_message_input" placeholder="Write message..."></input>
+                <div class="dropdown">
+                    <span id="code_snippet_toggle" class="mr-2">
+                        <span class="code-snippet-popup" id="id_code_snippet_popup">Code snippets</span>
+                        <span class="material-symbols-outlined">
+                            code
+                        </span>
+                    </span>
+                    <div id="dropdownContent" class="dropdown-content">
+                        <p class="text-align-center">Select language for syntax highlighting: </p>
+                        <input type="text" id="searchInput" onkeyup="filterOptions()" placeholder="Search...">
+                        <ul id="optionsList">
+                            {% for option in language_options %}
+                                <li onclick="selectOption('{{ option }}')">{{ option }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
                 <span id="chat_message_submit">
                     <span class="material-symbols-outlined">
                         send
@@ -441,6 +569,60 @@
 {% include 'chat_scripts/chat_log_adjustments.html' %}
 
 <script type="text/javascript">
+
+    var selectedLanguage = "";
+
+    function selectOption(option) {
+        var dropdownContent = document.getElementById("dropdownContent");
+        dropdownContent.style.display = "none";
+        // Store the selected option in a variable for further use
+        selectedLanguage = option.replace(" ", "_");
+        var editor = ace.edit("editor");
+        var mode = "ace/mode/" + selectedLanguage;
+        editor.session.setMode(mode);
+    }
+
+    function filterOptions() {
+        var input, filter, ul, li, i;
+        input = document.getElementById("searchInput");
+        filter = input.value.toUpperCase();
+        ul = document.getElementById("optionsList");
+        li = ul.getElementsByTagName("li");
+        for (i = 0; i < li.length; i++) {
+            var textValue = li[i].textContent || li[i].innerText;
+            if (textValue.toUpperCase().indexOf(filter) > -1) {
+            li[i].style.display = "";
+            } else {
+            li[i].style.display = "none";
+            }
+        }
+    }
+
+    function configureCodeSnippets() {
+        var codeSnippetDivs = document.getElementsByClassName("code-snippet");
+        Array.from(codeSnippetDivs).forEach(function(div) {
+            var content = div.getAttribute("data-content");
+            var editor = ace.edit(div);
+            var language = div.getAttribute("data-language");
+            if (language != "") {
+                var mode = "ace/mode/" + language;
+                editor.session.setMode(mode);
+            }
+            editor.setValue(content);
+            editor.setReadOnly(true);
+            editor.setTheme("ace/theme/monokai");
+            editor.setOptions({
+                highlightActiveLine: false,
+                maxLines: 150,
+                showPrintMargin: false
+            });
+        });
+    }
+
+    // Call the function after the chatroom messages are rendered
+    window.addEventListener('DOMContentLoaded', function() {
+        configureCodeSnippets();
+    });
 
     var userIsAuthenticated = JSON.parse(document.getElementById('user_is_authenticated').textContent);
 
@@ -594,10 +776,18 @@
             }
         }
 
-        const bodyElement = document.createElement('span');
-        bodyElement.classList.add('chatroom-message-body');
-        bodyElement.textContent = data.message;
-        messageTextElement.appendChild(bodyElement);
+        if (data.code) {
+            const bodyElement = document.createElement('div');
+            bodyElement.classList.add('code-snippet');
+            bodyElement.setAttribute('id', 'code_snippet_temp');
+            bodyElement.setAttribute('data-content', data.message);
+            messageTextElement.appendChild(bodyElement);
+        } else {
+            const bodyElement = document.createElement('span');
+            bodyElement.classList.add('chatroom-message-body');
+            bodyElement.textContent = data.message;
+            messageTextElement.appendChild(bodyElement);
+        }
 
         const timestampElement = document.createElement('span');
         timestampElement.classList.add('chatroom-message-timestamp');
@@ -619,6 +809,8 @@
                 messagesElement.scrollTop = messagesElement.scrollHeight;
             }, 100);
         }
+
+        configureCodeSnippets();
     }
 
     chatSocket.onclose = function(e) {
@@ -639,15 +831,77 @@
         }
     };
 
+    var codeSnippetText;
+
+    document.querySelector('#code_snippet_toggle').onclick = function(e) {
+        let codeEditor = document.getElementById('editor');
+        let textInput = document.getElementsByClassName('emojionearea');
+        let messageBar = document.getElementById('id_message_bar');
+        let codeSnippetPopup = document.getElementById('id_code_snippet_popup');
+        if (codeEditor === null) {
+            var dropdownContent = document.getElementById("dropdownContent");
+            dropdownContent.style.display = dropdownContent.style.display === "block" ? "none" : "block";
+
+            codeSnippetPopup.style.setProperty("visibility", "hidden", "important");
+            for (var i = 0; i < textInput.length; i++) {
+                textInput[i].style.visibility = "hidden";
+            }
+            messageBar.style.height = "25%";
+            let codeEditor = document.createElement('div');
+            codeEditor.setAttribute('id', 'editor');
+            messageBar.insertBefore(codeEditor, messageBar.firstChild);
+            var editor = ace.edit("editor");
+            editor.setTheme("ace/theme/monokai");
+            editor.getSession().on('change', function () {
+                codeSnippetText = editor.getSession().getValue();
+            })
+        }
+        else {
+            selectedLanguage = "";
+            messageBar.removeChild(codeEditor);
+            for (var i = 0; i < textInput.length; i++) {
+                textInput[i].style.visibility = "visible";
+            }
+            messageBar.style.height = "10%";
+            codeSnippetText = "";
+        }
+    };
+
     document.querySelector('#chat_message_submit').onclick = function(e) {
-        var message = $("#chat_message_input").data('emojioneArea').getText();
-        chatSocket.send(JSON.stringify({
-            'message': message
-        }));
-        // clears input element text - can't clear text just by setting elements value to empty
-        // string when using emoji picker
-        var emojioneAreas = $("#chat_message_input").emojioneArea(); 
-        emojioneAreas.data("emojioneArea").setText('');
+        let textInput = document.getElementsByClassName('emojionearea');
+        let codeFlag = false;
+        if (textInput[0].style.visibility == 'hidden') {
+            var message = codeSnippetText;
+            codeFlag = true;
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'code': codeFlag,
+                'language': selectedLanguage
+            }));
+            let messageBar = document.getElementById('id_message_bar');
+            let codeEditor = document.getElementById('editor');
+            messageBar.removeChild(codeEditor);
+            for (var i = 0; i < textInput.length; i++) {
+                textInput[i].style.visibility = "visible";
+            }
+            messageBar.style.height = "10%";
+            var dropdownContent = document.getElementById("dropdownContent");
+            dropdownContent.style.display = "none";
+            codeSnippetText = "";
+            selectedLanguage = "";
+        }
+        else {
+            var message = $("#chat_message_input").data('emojioneArea').getText();
+            // clears input element text - can't clear text just by setting elements value to empty
+            // string when using emoji picker
+            var emojioneAreas = $("#chat_message_input").emojioneArea(); 
+            emojioneAreas.data("emojioneArea").setText('');
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'code': codeFlag,
+                'language': selectedLanguage
+            }));
+        }
     };
 
     
@@ -668,16 +922,13 @@
                         let username = message.username;
                         let timestamp = message.timestamp;
                         let userid = message.userid;
+                        let language = message.language;
                         let timestampAsObj = new Date(timestamp);
                         let timestampFormattedAsDate = formatter.format(timestampAsObj);
                         let timestampFormattedAsTime = timestampAsObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                         
                         let text = message.message;
                         let profile_pic = message.profile_pic;
-                        let messageElementHtml = "";
-                        let messagePartOne = `<div class="chatroom-picture-container">`;
-                        let messagePartTwo = `</div><div class="chatroom-message-body-container"><div class="chatroom-message-headers-container">`
-                        let messagePartThree = `</div><div class="chatroom-message-text-container"><span class="chatroom-message-body">${text}</span><span class="chatroom-message-timestamp">${timestampFormattedAsTime}</span></div></div>`
                         
                         let isDateSeparatorRequired = false;
                         let isProfileLinkRequired = false;
@@ -708,6 +959,18 @@
                             }
                         }
 
+                        let messageElement = document.createElement('div');
+                        messageElement.classList.add("chatroom-message-container");
+
+                        let pictureContainer = document.createElement('div');
+                        pictureContainer.classList.add("chatroom-picture-container");
+
+                        let messageBodyContainer = document.createElement('div');
+                        messageBodyContainer.classList.add("chatroom-message-body-container")
+
+                        let headersContainer = document.createElement('div');
+                        headersContainer.classList.add("chatroom-message-headers-container")
+
                         if (isDateSeparatorRequired) {
                             dateSeparatorDiv = document.createElement('div');
                             dateSeparatorDiv.classList.add('date-separator');
@@ -717,20 +980,64 @@
                         }
 
                         if (isProfileLinkRequired) {
-                            messagePartOne += `<a class="user-profile-link-image" href="/account/${userid}/"><img class="chatroom-message-user-pic" src="${profile_pic}" alt="${username}'s profile image"></a>`
+                            let profileImageLink = document.createElement('a');
+                            profileImageLink.classList.add("user-profile-link-image");
+                            profileImageLink.href = "/account/" + userid + "/";
+
+                            let profileImage = document.createElement('img');
+                            profileImage.classList.add("chatroom-message-user-pic");
+                            profileImage.setAttribute("src", profile_pic);
+                            profileImage.alt = username + "'s profile image";
+                            profileImageLink.appendChild(profileImage);
+                            pictureContainer.appendChild(profileImageLink);
+
+                            let usernameLink = document.createElement('a');
+                            usernameLink.classList.add("user-profile-link-username");
+                            usernameLink.setAttribute("href", `/account/${userid}/`);
+
                             if (username == requestUsername) {
-                                messagePartTwo += `<a class="user-profile-link-username" href="/account/${userid}/"><span class="chatroom-message-author-current-user">${username}</span></a>`
+                                let profileUsername = document.createElement('span');
+                                profileUsername.classList.add("chatroom-message-author-current-user");
+                                profileUsername.textContent = username;
+                                usernameLink.appendChild(profileUsername);
                             }
                             else {
-                                messagePartTwo += `<a class="user-profile-link-username" href="/account/${userid}/"><span class="chatroom-message-author-other-user">${username}</span></a>`
+                                let profileUsername = document.createElement('span');
+                                profileUsername.classList.add("chatroom-message-author-other-user");
+                                profileUsername.textContent = username;
+                                usernameLink.appendChild(profileUsername);
                             }
+                            headersContainer.appendChild(usernameLink);
                         }
 
-                        messageElementHtml = messageElementHtml + messagePartOne + messagePartTwo + messagePartThree;
+                        messageElement.appendChild(pictureContainer);
 
-                        let messageElement = document.createElement('div');
-                        messageElement.classList.add("chatroom-message-container");
-                        messageElement.innerHTML = messageElementHtml;
+                        messageBodyContainer.appendChild(headersContainer);
+
+                        let textContainer = document.createElement('div');
+                        textContainer.classList.add("chatroom-message-text-container");
+
+                        if (message.code == true) {
+                            const bodyElement = document.createElement('div');
+                            bodyElement.classList.add('code-snippet');
+                            bodyElement.setAttribute('id', 'code_snippet_temp');
+                            bodyElement.setAttribute('data-content', text);
+                            bodyElement.setAttribute('data-language', language);
+                            textContainer.appendChild(bodyElement);
+                        } else {
+                            const bodyElement = document.createElement('span');
+                            bodyElement.classList.add('chatroom-message-body');
+                            bodyElement.textContent = text;
+                            textContainer.appendChild(bodyElement);
+                        }
+
+                        const timestampElement = document.createElement('span');
+                        timestampElement.classList.add('chatroom-message-timestamp');
+                        timestampElement.textContent = timestampFormattedAsTime;
+                        textContainer.appendChild(timestampElement);
+
+                        messageBodyContainer.appendChild(textContainer);
+                        messageElement.appendChild(messageBodyContainer);
                         
                         if (dateSeparatorDiv != null) {
                             fragment.appendChild(dateSeparatorDiv);
@@ -767,6 +1074,8 @@
                     // continue to scroll up to see new messages
                     chatLog.scrollTop = chatLog.scrollTop + newMessagesHeight;
                     addDashesPageLoad();
+
+                    configureCodeSnippets();
                 }
             });
         }

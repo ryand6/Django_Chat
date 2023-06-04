@@ -1,5 +1,8 @@
 import json
 import logging
+import os
+
+from mysite import settings
 
 from django.views import View
 from django.utils import timezone
@@ -143,7 +146,13 @@ class PrivateChatView(View):
             chats_with_last_messages = chats_with_last_messages.order_by('-last_date')
         except Exception as e:
             chats_with_last_messages = []
-        ctx = {'room_id': room_id, 'userid': userid, 'username': username, 'recent_messages': recent_messages, 'chat_users': chat_users, 'chats': chats_with_last_messages, 'user_timezone': user_timezone} 
+
+        # get list of languages for code snippet syntax highlighting options
+        file_path = os.path.join(settings.BASE_DIR, 'home', 'static', 'languages.txt')
+        with open(file_path, 'r') as file:
+            language_options = [line.strip() for line in file.readlines()]
+
+        ctx = {'room_id': room_id, 'userid': userid, 'username': username, 'recent_messages': recent_messages, 'language_options': language_options, 'chat_users': chat_users, 'chats': chats_with_last_messages, 'user_timezone': user_timezone} 
         return render(request, self.template_name, ctx)
 
 
@@ -214,7 +223,7 @@ def get_previous_messages_private(request):
         previous_messages = PrivateMessages.objects.filter(room=chatroom, id__lt=oldest_message.id).order_by('-id')[:40]
         response_data = {'messages': []}
         for message in previous_messages:
-            message_data = {'id': message.id, 'userid': message.user.id, 'message': message.message, 'timestamp': message.created_at.isoformat(), 'username': message.user.username, 'profile_pic': message.user.profile_image.url}
+            message_data = {'id': message.id, 'userid': message.user.id, 'language': message.language, 'code': message.code, 'message': message.message, 'timestamp': message.created_at.isoformat(), 'username': message.user.username, 'profile_pic': message.user.profile_image.url}
             response_data['messages'].append(message_data)
         return JsonResponse(response_data)
     

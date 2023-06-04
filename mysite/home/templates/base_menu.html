@@ -519,34 +519,132 @@
             if (data.type == "message_notification") {
                 oldNotification = document.querySelector('.popup-notification-link');
 
-                var newNotification = document.createElement('a');
+                let newNotification = document.createElement('a');
                 newNotification.setAttribute("href", `/privatechat/${data.room_id}/chat/`);
                 newNotification.classList.add('popup-notification-link');
                 newNotification.setAttribute("id", `notification_link_${data.notification_id}`)
-                newNotification.innerHTML = `<div class="notification-message-container"><div class="notification-picture-container">
-                        <img class="notification-pic" src="${data.profile_pic}" alt="notification sender ${data.sender}'s profile image"></div>
-                        <div class="notification-body-container"><div class="notification-headers-container"><span class="notification-sender" id="id_notification_sender_username_${data.notification_id}">
-                        ${data.sender}</span><span class="notification-timestamp" id="id_notification_timestamp_${data.notification_id}">${timestampFormattedAsDate}</span>
-                        </div><div class="notification-text-container"><span class="notification-message" id="id_notification_message_${data.notification_id}">
-                        ${data.message}</span></div></div></div>`
+
+                let notificationContainer = document.createElement('div');
+                notificationContainer.classList.add("notification-message-container");
+
+                let notificationPictureContainer = document.createElement('div');
+                notificationPictureContainer.classList.add("notification-picture-container");
+
+                let notificationPicture = document.createElement('img');
+                notificationPicture.src = data.profile_pic;
+                notificationPicture.alt = "notification sender " + data.sender + "'s profile image";
+
+                notificationPictureContainer.appendChild(notificationPicture);
+
+                let notificationBodyContainer = document.createElement('div');
+                notificationBodyContainer.classList.add("notification-body-container");
+
+                let notificationHeadersContainer = document.createElement('div');
+                notificationHeadersContainer.classList.add("notification-headers-container");
+
+                let notificationSender = document.createElement('span');
+                notificationSender.classList.add("notification-sender");
+                notificationSender.id = "id_notification_sender_username_" + data.notiifation_id;
+                notificationSender.textContent = data.sender;
+
+                let notificationTimestamp = document.createElement('span');
+                notificationTimestamp.classList.add("notification-timestamp");
+                notificationTimestamp.id = "id_notification_timestamp_" + data.notification_id;
+                notificationTimestamp.textContent = timestampFormattedAsDate;
+
+                notificationHeadersContainer.appendChild(notificationSender);
+                notificationHeadersContainer.appendChild(notificationTimestamp);
+
+                let notificationTextContainer = document.createElement('div');
+                notificationTextContainer.classList.add("notification-text-container");
+
+                let notificationMessage = document.createElement('span');
+                notificationMessage.classList.add("notification-message");
+                notificationMessage.id = "id_notification_message_" + data.notification_id;
+                notificationMessage.textContent = data.message;
+
+                notificationTextContainer.appendChild(notificationMessage);
+                notificationBodyContainer.appendChild(notificationHeadersContainer);
+                notificationBodyContainer.appendChild(notificationTextContainer);
+                notificationContainer.appendChild(notificationPictureContainer);
+                notificationContainer.appendChild(notificationBodyContainer);
+                newNotification.appendChild(notificationContainer);
+
                 showPopupNotification(newNotification, 5000);
             } else if (data.type == "friend_notification") {
                 let friendNotificationDiv = document.createElement('div');
                 friendNotificationDiv.classList.add('friend-notification-container');
                 friendNotificationDiv.setAttribute("id", `friend_notification_container_${data.notification_id}`);
+
+                let profileLink = document.createElement('a');
+                profileLink.classList.add("d-flex friend-request-notification-profile-link");
+                profileLink.href = fullUrlOrigin + "/account/" + data.sender_id;
+                profileLink.onclick = function(event) {
+                    event.preventDefault();
+                    window.location.href = this.getAttribute('href');
+                };
+
+                let friendNotificationPic = document.createElement('img');
+                friendNotificationPic.classList.add("d-flex friend-notification-pic");
+                friendNotificationPic.src = data.profile_pic;
+                friendNotificationPic.alt = "notification sender " + data.sender + "'s profile image";
+
+                profileLink.appendChild(friendNotificationPic);
+
+                let profileLinkTwo = document.createElement('a');
+                profileLinkTwo.classList.add("d-flex friend-request-notification-profile-link");
+                profileLinkTwo.href = fullUrlOrigin + "/account/" + data.sender_id;
+                profileLinkTwo.onclick = function(event) {
+                    event.preventDefault();
+                    window.location.href = this.getAttribute('href');
+                };
+
+                let friendNotificationSender = document.createElement('span');
+                friendNotificationSender.classList.add("d-flex friend-notification-sender");
+                friendNotificationSender.id = "id_friend_notification_sender_username_" + data.notification_id;
+                friendNotificationSender.textContent = data.sender;
+
+                profileLinkTwo.appendChild(friendNotificationSender);
+
+                friendNotificationDiv.appendChild(profileLink);
+                friendNotificationDiv.appendChild(profileLinkTwo);
+
                 if (data.status == "friend request received") {
-                    friendNotificationDiv.innerHTML = `<a class="d-flex friend-request-notification-profile-link" href="${fullUrlOrigin}/account/${data.sender_id}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');"><img class="d-flex friend-notification-pic" src="${data.profile_pic}" 
-                            alt="notification sender ${data.sender}'s profile image"></a><a class="d-flex friend-request-notification-profile-link" href="${fullUrlOrigin}/account/${data.sender_id}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');">
-                            <span class="d-flex friend-notification-sender" id="id_friend_notification_sender_username_${data.notification_id}">${data.sender} </span></a><span class="d-flex friend-notification-message">sent you a friend request</span>
-                            <a class="d-flex btn confirm-request-button confirm-friend-request friend-request-notification-option" id="id_confirm_friend_request" data-request-url="${fullUrlOrigin}/friends/friend_request_accept/" 
-                            data-friend-request-id="${data.friend_request_id}" onclick='acceptFriendRequest(this)'>Confirm</a><a class="d-flex btn btn-secondary decline-friend-request friend-request-notification-option" 
-                            id="id_decline_friend_request" data-request-url="${fullUrlOrigin}/friends/friend_request_decline/" data-friend-request-id="${data.friend_request_id}" onclick='declineFriendRequest(this)'>Decline</a>`
+                    let friendNotificationMessage = document.createElement('span');
+                    friendNotificationMessage.classList.add("d-flex friend-notification-message");
+                    friendNotificationMessage.textContent = "sent you a friend request";
+
+                    let confirmRequestButton = document.createElement('a');
+                    confirmRequestButton.classList.add("d-flex btn confirm-request-button confirm-friend-request friend-request-notification-option");
+                    confirmRequestButton.id = "id_confirm_friend_request"
+                    confirmRequestButton.setAttribute("data-request-url", fullUrlOrigin + "/friends/friend_request_accept/");
+                    confirmRequestButton.setAttribute("data-friend-request-id", data.friend_request_id);
+                    confirmRequestButton.onclick = function(event) {
+                        acceptFriendRequest(this);
+                    }
+                    confirmRequestButton.textContent = "Confirm";
+
+                    let declineRequestButton = document.createElement('a');
+                    declineRequestButton.classList.add("d-flex btn btn-secondary decline-friend-request friend-request-notification-option");
+                    declineRequestButton.id = "id_decline_friend_request"
+                    declineRequestButton.setAttribute("data-request-url", fullUrlOrigin + "/friends/friend_request_decline/");
+                    declineRequestButton.setAttribute("data-friend-request-id", data.friend_request_id);
+                    declineRequestButton.onclick = function(event) {
+                        declineFriendRequest(this);
+                    }
+                    declineRequestButton.textContent = "Decline";
+
+                    friendNotificationDiv.appendChild(friendNotificationMessage);
+                    friendNotificationDiv.appendChild(confirmRequestButton);
+                    friendNotificationDiv.appendChild(declineRequestButton);
+
                     friendNotificationDropdown.insertBefore(friendNotificationDiv, friendNotificationDropdown.firstChild);
                 } else if (data.status == "friend request accepted") {
-                    friendNotificationDiv.innerHTML = `<a class="d-flex friend-request-notification-profile-link" href="${fullUrlOrigin}/account/${data.sender_id}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');"><img class="d-flex friend-notification-pic"
-                            src="${data.profile_pic}" alt="notification sender ${data.sender}'s profile image"></a><a class="d-flex friend-request-notification-profile-link" 
-                            href="${fullUrlOrigin}/account/${data.sender_id}/" onclick="event.preventDefault(); window.location.href=this.getAttribute('href');"><span class="d-flex friend-notification-sender" id="id_friend_notification_sender_username_${data.notification_id}">${data.sender} </span></a>
-                            <span class="d-flex friend-notification-message">accepted your friend request</span>`
+                    let friendNotificationMessage = document.createElement('span');
+                    friendNotificationMessage.classList.add("d-flex friend-notification-message");
+                    friendNotificationMessage.textContent = "accepted your friend request";
+                    friendNotificationDiv.appendChild(friendNotificationMessage);
+
                     friendNotificationDropdown.insertBefore(friendNotificationDiv, friendNotificationDropdown.firstChild);
                 }
                 updateFriendNotifications();

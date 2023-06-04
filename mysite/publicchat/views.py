@@ -1,4 +1,7 @@
 import logging
+import os
+
+from mysite import settings
 
 from django.views import View
 from django.http import JsonResponse
@@ -47,7 +50,14 @@ class PublicChatView(View):
             recent_messages = None
             chat_users = None
             user_timezone = 0
-        ctx = {'userid': userid, 'username': username, 'recent_messages': recent_messages, 'chat_users': chat_users, 'user_timezone': user_timezone} 
+
+        # get list of languages for code snippet syntax highlighting options
+        file_path = os.path.join(settings.BASE_DIR, 'home', 'static', 'languages.txt')
+        print(file_path)
+        with open(file_path, 'r') as file:
+            language_options = [line.strip() for line in file.readlines()]
+
+        ctx = {'userid': userid, 'username': username, 'recent_messages': recent_messages, 'chat_users': chat_users, 'user_timezone': user_timezone, 'language_options': language_options} 
         return render(request, self.template_name, ctx)
     
 
@@ -59,7 +69,7 @@ def get_previous_messages(request):
         previous_messages = PublicMessages.objects.filter(room=chatroom, id__lt=oldest_message.id).order_by('-id')[:40]
         response_data = {'messages': []}
         for message in previous_messages:
-            message_data = {'id': message.id, 'userid': message.user.id, 'message': message.message, 'timestamp': message.created_at.isoformat(), 'username': message.user.username, 'profile_pic': message.user.profile_image.url}
+            message_data = {'id': message.id, 'userid': message.user.id, 'code': message.code, 'language': message.language, 'message': message.message, 'timestamp': message.created_at.isoformat(), 'username': message.user.username, 'profile_pic': message.user.profile_image.url}
             response_data['messages'].append(message_data)
         return JsonResponse(response_data)
     

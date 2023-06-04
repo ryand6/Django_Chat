@@ -5,7 +5,7 @@ from privatechat.models import PrivateChat
 class MessageNotifications(models.Model):
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notification_recipient")
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notification_sender")
-    message = models.CharField(max_length=255, null=True)
+    message = models.TextField(null=True)
     room = models.ForeignKey(PrivateChat, on_delete=models.CASCADE, related_name="notification_chatroom")
     timestamp = models.DateTimeField(auto_now_add=True)
     read = models.BooleanField(default=False)
