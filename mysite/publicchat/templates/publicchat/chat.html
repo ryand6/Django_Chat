@@ -602,15 +602,16 @@
         var codeSnippetDivs = document.getElementsByClassName("code-snippet");
         Array.from(codeSnippetDivs).forEach(function(div) {
             var content = div.getAttribute("data-content");
-            var language = div.getAttribute("data-language");
             var editor = ace.edit(div);
-            var mode = "ace/mode/" + language;
+            var language = div.getAttribute("data-language");
+            if (language != "") {
+                var mode = "ace/mode/" + language;
+                editor.session.setMode(mode);
+            }
             editor.setValue(content);
             editor.setReadOnly(true);
             editor.setTheme("ace/theme/monokai");
-            editor.session.setMode(mode);
             editor.setOptions({
-                readOnly: true,
                 highlightActiveLine: false,
                 maxLines: 150,
                 showPrintMargin: false

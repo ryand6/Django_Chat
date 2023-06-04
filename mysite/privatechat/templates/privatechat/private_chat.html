@@ -407,6 +407,52 @@
         width: 90%;
     }
 
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        width: 150px;
+        height: 250px;
+        overflow-x: auto;
+        overflow-y: auto;
+        padding: 10px;
+        background-color: lightgrey;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 999;
+        bottom: calc(100% + 10px);
+        color: black;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .dropdown-content input[type="text"] {
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 10px;
+    }
+
+    .dropdown-content ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .dropdown-content li {
+        padding: 5px;
+        cursor: pointer;
+        color: black;
+        font-weight: normal;
+        text-align: left;
+    }
+
+    .dropdown-content li:hover {
+        background-color: #ddd;
+    }
+
 </style>
 
 <div class="container d-flex flex-row" id="id_chat_log_container">
@@ -563,7 +609,7 @@
                     </div>
                     <div class="chatroom-message-text-container">
                         {% if message.code %}
-                            <div id="code_snippet_{{ message.id }}" class="code-snippet" data-content="{{ message.message }}"></div>
+                            <div id="code_snippet_{{ message.id }}" class="code-snippet" data-content="{{ message.message }}" data-language="{{ message.language }}"></div>
                         {% else %}
                         <span class="chatroom-message-body">
                             {{ message.message }}
@@ -583,12 +629,23 @@
         </div>
         <div class="d-flex flex-row p-2" id="id_message_bar">
             <input class="mx-2" id="chat_message_input" placeholder="Write message..."></input>
-            <span id="code_snippet_toggle" class="mr-2">
-                <span class="code-snippet-popup" id="id_code_snippet_popup">Code snippets</span>
-                <span class="material-symbols-outlined">
-                    code
+            <div class="dropdown">
+                <span id="code_snippet_toggle" class="mr-2">
+                    <span class="code-snippet-popup" id="id_code_snippet_popup">Code snippets</span>
+                    <span class="material-symbols-outlined">
+                        code
+                    </span>
                 </span>
-            </span>
+                <div id="dropdownContent" class="dropdown-content">
+                    <p class="text-align-center">Select language for syntax highlighting: </p>
+                    <input type="text" id="searchInput" onkeyup="filterOptions()" placeholder="Search...">
+                    <ul id="optionsList">
+                        {% for option in language_options %}
+                            <li onclick="selectOption('{{ option }}')">{{ option }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
             <span class="mr-2" id="chat_message_submit">
                 <span class="material-symbols-outlined">
                     send
@@ -606,22 +663,54 @@
 
 <script type="text/javascript">
 
-    function configureCodeSnippets() {
-            var codeSnippetDivs = document.getElementsByClassName("code-snippet");
-            Array.from(codeSnippetDivs).forEach(function(div) {
-                var content = div.getAttribute("data-content");
-                var editor = ace.edit(div);
-                editor.setValue(content);
-                editor.setReadOnly(true);
-                editor.setTheme("ace/theme/monokai");
-                editor.setOptions({
-                    readOnly: true,
-                    highlightActiveLine: false,
-                    maxLines: 150,
-                    showPrintMargin: false
-                });
-            });
+    var selectedLanguage = "";
+
+    function selectOption(option) {
+        var dropdownContent = document.getElementById("dropdownContent");
+        dropdownContent.style.display = "none";
+        // Store the selected option in a variable for further use
+        selectedLanguage = option.replace(" ", "_");
+        var editor = ace.edit("editor");
+        var mode = "ace/mode/" + selectedLanguage;
+        editor.session.setMode(mode);
+    }
+
+    function filterOptions() {
+        var input, filter, ul, li, i;
+        input = document.getElementById("searchInput");
+        filter = input.value.toUpperCase();
+        ul = document.getElementById("optionsList");
+        li = ul.getElementsByTagName("li");
+        for (i = 0; i < li.length; i++) {
+            var textValue = li[i].textContent || li[i].innerText;
+            if (textValue.toUpperCase().indexOf(filter) > -1) {
+            li[i].style.display = "";
+            } else {
+            li[i].style.display = "none";
+            }
         }
+    }
+
+    function configureCodeSnippets() {
+        var codeSnippetDivs = document.getElementsByClassName("code-snippet");
+        Array.from(codeSnippetDivs).forEach(function(div) {
+            var content = div.getAttribute("data-content");
+            var editor = ace.edit(div);
+            var language = div.getAttribute("data-language");
+            if (language != "") {
+                var mode = "ace/mode/" + language;
+                editor.session.setMode(mode);
+            }
+            editor.setValue(content);
+            editor.setReadOnly(true);
+            editor.setTheme("ace/theme/monokai");
+            editor.setOptions({
+                highlightActiveLine: false,
+                maxLines: 150,
+                showPrintMargin: false
+            });
+        });
+    }
 
     // Call the function after the chatroom messages are rendered
     window.addEventListener('DOMContentLoaded', function() {
@@ -732,19 +821,6 @@
 
                         // Insert the new elements into the DOM
                         chatsLog.insertBefore(aElement, elementToInsertAfter.nextSibling);
-
-                        // newHTML = `<a href="${linkUrl}" class="private-chat-link" id="private_chat_link_${response.chat_id}"><div class="private-chats-room-message-container"><div class="private-chats-room-picture-container">
-                        //     <img class="private-chats-room-pic" src="${response.chat_image}" alt="chat room ${response.chat_id}'s profile image"></div>
-                        //     <div class="private-chats-room-body-container"><div class="private-chats-room-headers-container"><span class="private-chats-room-members" id="id_room_members_${response.chat_id}">
-                        //     ${response.chat_name}</span><span class="private-chats-room-last-date-sent" id="id_room_last_sent_${response.chat_id}">${timestampFormattedAsDate}</span>
-                        //     </div><div class="private-chats-room-message-text-container" id="id_room_text_container_${response.chat_id}"><span class="private-chats-room-last-message" id="id_room_last_message_${response.chat_id}">
-                        //     ${chatMessage}</span>`
-                        // if (response.unread_count > 0) {
-                        //     newHTML = newHTML + `<span class="badge badge-pill badge-primary private-message-notification-count" id="id_room_message_notification_count_${response.chat_id}">${response.unread_count}</span></div></div></div></a>`
-                        // } else {
-                        //     newHTML = newHTML + `</div></div></div></a>`
-                        // }
-                        // elementToInsertAfter.insertAdjacentHTML('afterend', newHTML);
 
                         if (response.last_message_user != requestUserid) {
                             let lastDateSentUpdateStyle = document.getElementById('id_room_last_sent_' + response.chat_id);
@@ -934,6 +1010,7 @@
                 bodyElement.classList.add('code-snippet');
                 bodyElement.setAttribute('id', 'code_snippet_temp');
                 bodyElement.setAttribute('data-content', data.message);
+                bodyElement.setAttribute('data-language', data.language);
                 messageTextElement.appendChild(bodyElement);
             } else {
                 const bodyElement = document.createElement('span');
@@ -989,6 +1066,9 @@
             let messageBar = document.getElementById('id_message_bar');
             let codeSnippetPopup = document.getElementById('id_code_snippet_popup');
             if (codeEditor === null) {
+                var dropdownContent = document.getElementById("dropdownContent");
+                dropdownContent.style.display = dropdownContent.style.display === "block" ? "none" : "block";
+
                 codeSnippetPopup.style.setProperty("visibility", "hidden", "important");
                 for (var i = 0; i < textInput.length; i++) {
                     textInput[i].style.visibility = "hidden";
@@ -1004,6 +1084,7 @@
                 })
             }
             else {
+                selectedLanguage = "";
                 messageBar.removeChild(codeEditor);
                 for (var i = 0; i < textInput.length; i++) {
                     textInput[i].style.visibility = "visible";
@@ -1022,7 +1103,8 @@
             codeFlag = true;
             chatSocket.send(JSON.stringify({
                 'message': message,
-                'code': codeFlag
+                'code': codeFlag,
+                'language': selectedLanguage
             }));
             let messageBar = document.getElementById('id_message_bar');
             let codeEditor = document.getElementById('editor');
@@ -1031,7 +1113,10 @@
                 textInput[i].style.visibility = "visible";
             }
             messageBar.style.height = "10%";
+            var dropdownContent = document.getElementById("dropdownContent");
+            dropdownContent.style.display = "none";
             codeSnippetText = "";
+            selectedLanguage = "";
         }
         else {
             var message = $("#chat_message_input").data('emojioneArea').getText();
@@ -1041,7 +1126,8 @@
             emojioneAreas.data("emojioneArea").setText('');
             chatSocket.send(JSON.stringify({
                 'message': message,
-                'code': codeFlag
+                'code': codeFlag,
+                'language': selectedLanguage
             }));
         }
     };
@@ -1112,6 +1198,7 @@
                         let username = message.username;
                         let timestamp = message.timestamp;
                         let userid = message.userid;
+                        let language = message.language;
                         let timestampAsObj = new Date(timestamp);
                         let timestampFormattedAsDate = formatter.format(timestampAsObj);
                         let timestampFormattedAsTime = timestampAsObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -1211,6 +1298,7 @@
                             bodyElement.classList.add('code-snippet');
                             bodyElement.setAttribute('id', 'code_snippet_temp');
                             bodyElement.setAttribute('data-content', text);
+                            bodyElement.setAttribute('data-language', language);
                             textContainer.appendChild(bodyElement);
                         } else {
                             const bodyElement = document.createElement('span');
