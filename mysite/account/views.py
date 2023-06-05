@@ -250,16 +250,20 @@ class EditProfileView(View):
 
 
 def save_temp_image(image_b64, user):
+    print(settings.TEMP)
     try:
         if not os.path.exists(settings.TEMP):
             os.mkdir(settings.TEMP)
         # account for different os filepaths - '/' or '\'
         path = os.path.join(settings.TEMP, str(user.pk))
+        print(path)
         if not os.path.exists(path):
             os.mkdir(path)
         # filepath for saving temp image
         url = os.path.join(path, TEMP_IMAGE_NAME)
+        print(url)
         storage = FileSystemStorage(location=url)
+        print(storage)
         # https://stackoverflow.com/questions/2941995/python-ignore-incorrect-padding-error-when-base64-decoding
         # add maximum number of padding required to base64 string before decoding to prevent any incorrect padding
         # errors occurring if the base64 string is corrupted - if padding already exists, Python will safely discard
