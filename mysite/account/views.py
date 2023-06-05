@@ -2,6 +2,7 @@ import os
 import cv2
 import base64
 import json
+import logging
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
@@ -21,6 +22,8 @@ from friends.models import FriendList, FriendRequest
 from friends.views import is_friend_request_active
 
 from django.db.models import Q
+
+logger = logging.getLogger('django')
 
 
 TEMP_IMAGE_NAME = "temp_profile_image.png"
