@@ -38,7 +38,7 @@ class ChatAccountManager(BaseUserManager):
 
 
 def get_profile_image_path(self, filename):
-    return f"profile_images/{self.pk}/"
+    return f"profile_images/{self.pk}/profile_image.png"
 
 
 def get_default_image_path():
