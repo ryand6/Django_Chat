@@ -307,10 +307,6 @@ def crop_image(request, *args, **kwargs):
 
             cv2.imwrite(url, crop_image)
 
-            # delete previously stored image for user
-            # if user.profile_image:
-            #     user.profile_image.delete()
-
             user.profile_image.save("profile_image.png", files.File(open(url, "rb")))
             user.save()
 
