@@ -443,6 +443,10 @@
             font-size: 12pt;
         }
 
+        .chatroom-message-author-other-user {
+            font-size: 12pt;
+        }
+
         .chatroom-message-body {
             font-size: 10pt;
         }
@@ -507,10 +511,11 @@
 
         .chatroom-banner-title {
             font-size: 10pt;
+            margin-left: 10px !important;
         }
 
         .chatroom-banner-text {
-            font-size: 8pt;
+            font-size: 10pt;
         }
 
         #code_snippet_toggle {
@@ -545,6 +550,25 @@
             display: flex;
         }
 
+        #id_chat_log_container {
+            height: calc(100vh - 125px);
+        }
+
+        .public-chatroom-banner {
+            height: 30px;
+        }
+
+        #popup_message {
+            padding: 0px;
+            font-size: 8pt;
+            height: 80%;
+            width: 80%;
+        }
+
+        #popup_header {
+            font-size: 12pt !important;
+        }
+
     }
 
 </style>
@@ -553,7 +577,7 @@
     <div class="d-flex flex-row justify-content-center public-chatroom-banner-container">
         <div class="d-flex flex-row public-chatroom-banner">
             <span class="ml-5 mr-2 chatroom-banner-title">Public Chat</span>
-            <span class="chatroom-banner-text">|   General chatroom where you can share ideas, discuss projects, ask development related questions, and chat about anything in between!</span>
+            <span class="chatroom-banner-text">|   General chatroom</span>
         </div>
     </div>
     <div class="container d-flex flex-row" id="id_chat_log_container">
@@ -759,9 +783,9 @@
             <p>Please register for an account to gain access to the public chatroom. When registered, you can also connect with other users of the site and send private messages.</p><br>
             <p>Chat DJ4E is designed as a space for aspiring and early in career developers to connect with eachother, share ideas and help solve problems. However, anyone is welcome to use the site and participate.</p><br>
             <p>This site was created as an educational tool, and started as a final project for Dr. Chuck Severance's Django For Everybody (DJ4E) course. Any and all feedback is highly encouraged 
-            so please feel free to drop me a message under the username @ryand6 with any questions, issues, or if you just want a chat - if you've come from Dr Chuck's course then say hi! :)</p><br>
-            <p>The site is currently only suitable for desktop browsers, but there is consideration to make the site mobile friendly also. Potential future features include code snippets and message reactions. If you have
-            any feature suggestions you wish to see, let me know.</p><br><p>Enjoy!</p></div>`
+            so please feel free to drop me a message under the username @ryand6 with any questions, issues, or if you just want a chat</p><br>
+            <p>Potential future features include message reactions and replies. If you have
+            any feature suggestions you wish to see, let me know.</p></div>`
         mainContent.appendChild(popupContainer);
         popupContainer.classList.add("show");
         mainContent.classList.add("blur");

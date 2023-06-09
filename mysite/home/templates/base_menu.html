@@ -260,16 +260,25 @@
 
     @media (max-width: 649px) {
         .navbar-header {
-            margin-right: 10px;
+            margin-right: 5px;
         }
 
         .navbar-brand {
             margin-right: 5px;
-            font-size: 12pt;
+            font-size: 10pt;
         }
         
         .flex-item-1 {
-            font-size: 10pt;
+            font-size: 8pt;
+        }
+
+        .search-bar {
+            padding-left: 10px !important;
+        }
+
+        #id_search_bar {
+            padding: 2px;
+            font-size: 8pt;
         }
 
         .navbar {
@@ -278,14 +287,27 @@
 
         .btn-group {
             margin-right: 0 !important;
+            margin-left: 5px;
         }
 
         #id_friend_notifications_toggle {
             margin-right: 5px !important;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .friend-notification-count {
+            display: flex;
+            flex-direction: row;
+            font-size: 6pt;
+            margin-left: 2px;
         }
 
         #id_friend_notifications {
-            font-size: 16pt;
+            display: flex;
+            flex-direction: row;
+            font-size: 12pt;
+            margin-right: 0 !important;
         }
 
         #id_profile_options {
@@ -305,6 +327,74 @@
         
         .dropdown-menu {
             min-width: 75px;
+        }
+
+        #id_navbar_right {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar-right {
+            display: flex;
+            flex-direction: row;
+            font-size: 8pt;
+            margin-left: 0 !important;
+        }
+
+        .navbar-right .navbar-nav {
+            margin-left: 0 !important;
+            margin-bottom: 5px;
+        }
+
+        .navbar-right a {
+            margin-left: 0 !important;
+        }
+
+        .navbar-right .btn {
+            font-size: 8pt;
+            margin-left: 5px;
+            padding: 2px; 
+        }
+
+        .popup-notification-link {
+            display: none !important;
+        }
+
+        .notification-message-container {
+            display: none !important;
+        }
+
+        #id_friend_notifications_dropdown {
+            width: 300px;
+        }
+
+        .friend-notification-container {
+            padding-left: 5px;
+            padding-right: 5px;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        .friend-notification-pic {
+            height: 20px;
+            width: 20px;
+        }
+
+        .friend-notification-sender {
+            font-size: 6pt;
+        }
+
+        .friend-notification-message {
+            font-size: 6pt;
+        }
+
+        .confirm-friend-request {
+            margin-left: auto;
+        }
+
+        .friend-request-notification-option {
+            font-size: 6pt;
+            padding: 5px;
         }
     }
 

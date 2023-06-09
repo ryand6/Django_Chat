@@ -7,7 +7,7 @@
     } 
 
     #id_chat_log_container{
-        height: calc(100vh - 185px);
+        height: calc(100vh - 155px);
         width: 100%;
         max-width: 2000px;
         flex: 1;
@@ -163,6 +163,43 @@
 
     .no-chats-text{
         font-size: 14pt;
+    }
+
+    @media (max-width: 649px) {
+        .private-all-chats-banner-text {
+            font-size: 16pt;
+            margin-left: 20px;
+        }
+
+        .private-chats-room-picture-container {
+            width: 50px;
+            min-width: 50px;
+            height: 50px;
+            max-height: 50px;
+        }
+
+        .private-chats-room-pic {
+            height: 40px;
+            width: 40px;
+            margin-left: 5px;
+        }
+
+        .private-chats-room-members {
+            font-size: 10pt;
+        }
+
+        .private-chats-room-last-date-sent {
+            font-size: 8pt;
+        }
+
+        .private-chats-room-last-message {
+            font-size: 8pt;
+        }
+
+        .private-message-notification-count {
+            font-size: 8pt;
+            padding: 3px;
+        }
     }
 
 </style>
