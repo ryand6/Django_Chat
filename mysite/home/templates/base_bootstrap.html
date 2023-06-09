@@ -37,92 +37,49 @@
             height: 100%;
         }
 
-        #popup_container {
-            position: fixed;
-            bottom: 0;
-            left: 15%;
-            background-color: rgba(0, 0, 0, 0.75); /* semi-transparent background */
-            z-index: 999; /* make sure the pop-up is on top of everything else */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: 70%;
-            height: 60%;
-            animation: popup-anim 0.75s ease-in-out forwards;
-        }
-
-        #popup_message {
-            padding: 30px;
-            width: 75%;
-            height: 75%;
-            overflow-x: hidden;
-            overflow-y: visible;
-        }
-
-        @keyframes popup-anim {
-            from {
-                transform: translateY(-60%);
-            }
-            to {
-                transform: translateY(-40%);
-            }
-        }
-
     </style>
 
-    {% if request|is_mobile %}
+    <div>{% block navbar %} {% endblock %}</div>
     <div class="main">
-        <div class="show" id="popup_container">
-            <div id="popup_message">
-                <p>This site currently isn't suitable for mobile browsers. Please access the site via desktop or tablet browser to continue.</p>
-            </div>
-        </div>
-    </div>
-    {% else %}
-        <div>{% block navbar %} {% endblock %}</div>
-        <div class="main">
-            {% block welcome %} {% endblock %}
-            {% block messages %}
-                {% if messages %}
-                {% for msg in messages %}
-                    <div class="alert alert-{{msg.level_tag}}" role="alert">
-                    {{msg.message}}
-                    </div>
-                {% endfor %}
-                {% endif %}
-            {% endblock %}
-            
-            <div class="container" id="id_loading_spinner" style="display: none;">
-                <div class="d-flex flex-row mx-auto flex-grow-1 justify-content-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </div>
+        {% block welcome %} {% endblock %}
+        {% block messages %}
+            {% if messages %}
+            {% for msg in messages %}
+                <div class="alert alert-{{msg.level_tag}}" role="alert">
+                {{msg.message}}
+                </div>
+            {% endfor %}
+            {% endif %}
+        {% endblock %}
+        
+        <div class="container" id="id_loading_spinner" style="display: none;">
+            <div class="d-flex flex-row mx-auto flex-grow-1 justify-content-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
                 </div>
             </div>
-
-            {% block content %}
-            {% endblock %}
         </div>
-        {% block footer %} {% endblock %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+    {% block footer %} {% endblock %}
 
 
-        <script type="module" src="{% static 'cropperjs/dist/cropper.min.js' %}"></script>
-        <script type="module" src="{% static 'ace/ace.js' %}"></script>
+    <script type="module" src="{% static 'cropperjs/dist/cropper.min.js' %}"></script>
+    <script type="module" src="{% static 'ace/ace.js' %}"></script>
 
-        <script type="text/javascript">
-            function displayLoadingSpinner(isDisplayed){
-                var spinner = document.getElementById("id_loading_spinner");
-                if (isDisplayed) {
-                    spinner.style.display = "block";
-                }
-                else{
-                    spinner.style.display = "none";
-                }
+    <script type="text/javascript">
+        function displayLoadingSpinner(isDisplayed){
+            var spinner = document.getElementById("id_loading_spinner");
+            if (isDisplayed) {
+                spinner.style.display = "block";
             }
-        </script>
-    {% endif %}
+            else{
+                spinner.style.display = "none";
+            }
+        }
+    </script>
 
 </body>
 </html>

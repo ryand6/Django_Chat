@@ -421,13 +421,162 @@
         background-color: #ddd;
     }
 
+    @media (max-width: 649px) {
+        .chatroom-message-container {
+            padding-left: 5px;
+        }
+
+        .chatroom-picture-container {
+            height: 45px;
+            width: 45px;
+            min-width: 45px;
+        }
+
+        .chatroom-message-user-pic {
+            height: 30px;
+            width: 30px;
+            margin-left: 5px;
+        }
+
+        .chatroom-message-author-current-user {
+            font-size: 12pt;
+        }
+
+        .chatroom-message-author-other-user {
+            font-size: 12pt;
+        }
+
+        .chatroom-message-body {
+            font-size: 10pt;
+        }
+
+        .chatroom-message-timestamp {
+            font-size: 7pt;
+            margin-right: 5px;
+            margin-top: 0.5em;
+        }
+
+        .chatroom-message-text-container {
+            align-items: center;
+        }
+
+        .chat-window {
+            width: 80%;
+        }
+
+        #id_chat_users_container {
+            width: 20%;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .chat-users-header {
+            font-size: 8pt;
+        }
+
+        .chat-user-container {
+            padding: 2px;
+        }
+
+        .chat-user-picture-container {
+            height: 22px;
+            width: 22px;
+            margin-right: 0 !important;
+        }
+
+        .chat-user-image {
+            height: 20px;
+            width: 20px;
+        }
+
+        .user-online-circle {
+            height: 8px;
+            width: 8px;
+        }
+
+        .user-away-circle {
+            height: 8px;
+            width: 8px;
+        }
+
+        .user-offline-circle {
+            height: 8px;
+            width: 8px;
+        }
+
+        .chat-user-username {
+            font-size: 8pt;
+        }
+
+        .chatroom-banner-title {
+            font-size: 10pt;
+            margin-left: 10px !important;
+        }
+
+        .chatroom-banner-text {
+            font-size: 10pt;
+        }
+
+        #code_snippet_toggle {
+            height: 30px;
+            width: 30px;
+        }
+
+        #chat_message_submit {
+            height: 30px;
+            width: 30px;
+        }
+
+        .ace_editor {
+            font-size: 8pt;
+        }
+
+        #id_message_bar {
+            padding: 10px !important;
+        }
+
+        .emojionearea .emojionearea-picker.emojionearea-picker-position-top {
+            right: -150px;
+        }
+
+        .emojionearea .emojionearea-picker.emojionearea-picker-position-top .emojionearea-wrapper::after {
+            bottom: 0;
+        }
+
+        .date-separator {
+            font-size: 8pt;
+            justify-content: center;
+            display: flex;
+        }
+
+        #id_chat_log_container {
+            height: calc(100vh - 125px);
+        }
+
+        .public-chatroom-banner {
+            height: 30px;
+        }
+
+        #popup_message {
+            padding: 0px;
+            font-size: 8pt;
+            height: 80%;
+            width: 80%;
+        }
+
+        #popup_header {
+            font-size: 12pt !important;
+        }
+
+    }
+
 </style>
 
 <div id="main_content">
     <div class="d-flex flex-row justify-content-center public-chatroom-banner-container">
         <div class="d-flex flex-row public-chatroom-banner">
             <span class="ml-5 mr-2 chatroom-banner-title">Public Chat</span>
-            <span class="chatroom-banner-text">|   General chatroom where you can share ideas, discuss projects, ask development related questions, and chat about anything in between!</span>
+            <span class="chatroom-banner-text">|   General chatroom</span>
         </div>
     </div>
     <div class="container d-flex flex-row" id="id_chat_log_container">
@@ -635,8 +784,8 @@
             <p>Chat DJ4E is designed as a space for aspiring and early in career developers to connect with eachother, share ideas and help solve problems. However, anyone is welcome to use the site and participate.</p><br>
             <p>This site was created as an educational tool, and started as a final project for Dr. Chuck Severance's Django For Everybody (DJ4E) course. Any and all feedback is highly encouraged 
             so please feel free to drop me a message under the username @ryand6 with any questions, issues, or if you just want a chat :)</p><br>
-            <p>The site is currently only suitable for desktop browsers, but there is consideration to make the site mobile friendly also. Potential future features include code snippets and message reactions. If you have
-            any feature suggestions you wish to see, let me know.</p><br><p>Enjoy!</p></div>`
+            <p>Potential future features include message reactions and replies. If you have
+            any feature suggestions you wish to see, let me know.</p></div>`
         mainContent.appendChild(popupContainer);
         popupContainer.classList.add("show");
         mainContent.classList.add("blur");
