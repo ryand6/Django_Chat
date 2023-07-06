@@ -1,0 +1,95 @@
+<script type="text/javascript">
+
+    var selectedLanguage = "";
+    
+    function selectOption(option) {
+        var dropdownContent = document.getElementById("dropdownContent");
+        dropdownContent.style.display = "none";
+        // Store the selected option in a variable for further use
+        selectedLanguage = option.replace(" ", "_");
+        var editor = ace.edit("editor");
+        var mode = "ace/mode/" + selectedLanguage;
+        editor.session.setMode(mode);
+    }
+
+    function filterOptions() {
+        var input, filter, ul, li, i;
+        input = document.getElementById("searchInput");
+        filter = input.value.toUpperCase();
+        ul = document.getElementById("optionsList");
+        li = ul.getElementsByTagName("li");
+        for (i = 0; i < li.length; i++) {
+            var textValue = li[i].textContent || li[i].innerText;
+            if (textValue.toUpperCase().indexOf(filter) > -1) {
+            li[i].style.display = "";
+            } else {
+            li[i].style.display = "none";
+            }
+        }
+    }
+
+    function configureCodeSnippets() {
+        var codeSnippetDivs = document.getElementsByClassName("code-snippet");
+        Array.from(codeSnippetDivs).forEach(function(div) {
+            var content = div.getAttribute("data-content");
+            var editor = ace.edit(div);
+            var language = div.getAttribute("data-language");
+            if (language != "") {
+                var mode = "ace/mode/" + language;
+                editor.session.setMode(mode);
+            }
+            editor.setValue(content);
+            editor.setReadOnly(true);
+            editor.setTheme("ace/theme/monokai");
+            editor.setOptions({
+                highlightActiveLine: false,
+                maxLines: 150,
+                showPrintMargin: false
+            });
+        });
+    }
+
+    // Call the function after the chatroom messages are rendered
+    window.addEventListener('DOMContentLoaded', function() {
+        configureCodeSnippets();
+    });
+
+    var codeSnippetText;
+
+    document.querySelector('#code_snippet_toggle').onclick = function(e) {
+        let codeEditor = document.getElementById('editor');
+        let textInput = document.getElementsByClassName('emojionearea');
+        let messageBar = document.getElementById('id_message_bar');
+        let codeSnippetPopup = document.getElementById('id_code_snippet_popup');
+        var dropdownContent = document.getElementById("dropdownContent");
+        dropdownContent.style.display = dropdownContent.style.display === "block" ? "none" : "block";
+        if (codeEditor) {
+            dropdownContent.style.display = "none";
+        }
+        if (codeEditor === null) {
+            codeSnippetPopup.style.setProperty("visibility", "hidden", "important");
+            for (var i = 0; i < textInput.length; i++) {
+                textInput[i].style.visibility = "hidden";
+            }
+            messageBar.style.height = "25%";
+            let codeEditor = document.createElement('div');
+            codeEditor.setAttribute('id', 'editor');
+            messageBar.insertBefore(codeEditor, messageBar.firstChild);
+            var editor = ace.edit("editor");
+            editor.setTheme("ace/theme/monokai");
+            editor.getSession().on('change', function () {
+                codeSnippetText = editor.getSession().getValue();
+            })
+        }
+        else {
+            selectedLanguage = "";
+            messageBar.removeChild(codeEditor);
+            for (var i = 0; i < textInput.length; i++) {
+                textInput[i].style.visibility = "visible";
+            }
+            messageBar.style.height = "10%";
+            codeSnippetText = "";
+        }
+    };
+    
+</script>

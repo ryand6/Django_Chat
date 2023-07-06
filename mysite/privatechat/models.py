@@ -29,6 +29,3 @@ class PrivateMessages(models.Model):
 
     # overwrite objects using newly created manager
     objects = PrivateChatMessagesManager()
-
-    def __str__(self):
-        return self.message
