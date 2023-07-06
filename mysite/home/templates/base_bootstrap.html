@@ -30,10 +30,20 @@
 {% include 'base/base_js.html' %}
 
     <style type="text/css">
-        .main{
+
+        .main {
             min-height: 100vh;
             height: 100%;
         }
+        
+        @media (max-width: 649px) {
+            body { 
+                position: fixed; 
+                height: 100%;
+                width: 100%;
+            }
+        }
+
     </style>
 
     <div>{% block navbar %} {% endblock %}</div>
