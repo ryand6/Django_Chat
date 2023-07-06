@@ -1033,7 +1033,7 @@
     }
 
     const chatSocket = new WebSocket(
-        'ws://' + window.location.host + '/ws/private_chat/' + requestRoomId + '/'
+        ws_path + '/ws/private_chat/' + requestRoomId + '/'
     );
 
     chatSocket.onmessage = function (e) {
