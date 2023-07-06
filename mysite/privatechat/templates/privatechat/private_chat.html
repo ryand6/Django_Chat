@@ -869,7 +869,7 @@
     var requestUserid = JSON.parse(document.getElementById('userid').textContent);
 
     const allChatsSocket = new WebSocket(
-        'ws://' + window.location.host + '/ws/all_private_chats/' + requestUserid + '/'
+        ws_path + '/ws/all_private_chats/' + requestUserid + '/'
     );
 
     allChatsSocket.onmessage = function (e) {
