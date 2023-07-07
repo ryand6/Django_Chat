@@ -218,4 +218,4 @@ def send_friend_notification(sender, instance, **kwargs):
         }
     )
 
-post_save.connect(send_friend_notification, sender=FriendRequest)   
+# post_save.connect(send_friend_notification, sender=FriendRequest)   
