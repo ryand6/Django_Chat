@@ -651,7 +651,6 @@
         storeUserTimezoneOffset();
 
         notificationSocket.onmessage = function(e) {
-            console.log("notification!")
             let data = JSON.parse(e.data);
 
             var timestampAsObj = new Date(data.timestamp);
