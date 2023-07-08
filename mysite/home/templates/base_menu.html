@@ -667,6 +667,7 @@
                 notificationPictureContainer.classList.add("notification-picture-container");
 
                 let notificationPicture = document.createElement('img');
+                notificationPicture.classList.add("notification-pic");
                 notificationPicture.src = data.profile_pic;
                 notificationPicture.alt = "notification sender " + data.sender + "'s profile image";
                 
@@ -713,7 +714,8 @@
                 friendNotificationDiv.setAttribute("id", `friend_notification_container_${data.notification_id}`);
 
                 let profileLink = document.createElement('a');
-                profileLink.classList.add("d-flex friend-request-notification-profile-link");
+                profileLink.classList.add("friend-request-notification-profile-link");
+                profileLink.classList.add("d-flex");
                 profileLink.href = fullUrlOrigin + "/account/" + data.sender_id;
                 profileLink.onclick = function(event) {
                     event.preventDefault();
@@ -721,14 +723,16 @@
                 };
 
                 let friendNotificationPic = document.createElement('img');
-                friendNotificationPic.classList.add("d-flex friend-notification-pic");
+                friendNotificationPic.classList.add("friend-notification-pic");
+                friendNotificationPic.classList.add("d-flex");
                 friendNotificationPic.src = data.profile_pic;
                 friendNotificationPic.alt = "notification sender " + data.sender + "'s profile image";
 
                 profileLink.appendChild(friendNotificationPic);
 
                 let profileLinkTwo = document.createElement('a');
-                profileLinkTwo.classList.add("d-flex friend-request-notification-profile-link");
+                profileLinkTwo.classList.add("friend-request-notification-profile-link");
+                profileLinkTwo.classList.add("d-flex");
                 profileLinkTwo.href = fullUrlOrigin + "/account/" + data.sender_id;
                 profileLinkTwo.onclick = function(event) {
                     event.preventDefault();
@@ -748,11 +752,16 @@
                 if (data.status == "friend request received") {
                     
                     let friendNotificationMessage = document.createElement('span');
-                    friendNotificationMessage.classList.add("d-flex friend-notification-message");
+                    friendNotificationMessage.classList.add("friend-notification-message");
+                    friendNotificationMessage.classList.add("d-flex");
                     friendNotificationMessage.textContent = "sent you a friend request";
 
                     let confirmRequestButton = document.createElement('a');
-                    confirmRequestButton.classList.add("d-flex btn confirm-request-button confirm-friend-request friend-request-notification-option");
+                    confirmRequestButton.classList.add("d-flex");
+                    confirmRequestButton.classList.add("btn");
+                    confirmRequestButton.classList.add("confirm-request-button");
+                    confirmRequestButton.classList.add("confirm-friend-request");
+                    confirmRequestButton.classList.add("friend-request-notification-option");
                     confirmRequestButton.id = "id_confirm_friend_request"
                     confirmRequestButton.setAttribute("data-request-url", fullUrlOrigin + "/friends/friend_request_accept/");
                     confirmRequestButton.setAttribute("data-friend-request-id", data.friend_request_id);
@@ -762,7 +771,11 @@
                     confirmRequestButton.textContent = "Confirm";
 
                     let declineRequestButton = document.createElement('a');
-                    declineRequestButton.classList.add("d-flex btn btn-secondary decline-friend-request friend-request-notification-option");
+                    declineRequestButton.classList.add("d-flex");
+                    declineRequestButton.classList.add("btn");
+                    declineRequestButton.classList.add("btn-secondary");
+                    declineRequestButton.classList.add("decline-friend-request");
+                    declineRequestButton.classList.add("friend-request-notification-option");
                     declineRequestButton.id = "id_decline_friend_request"
                     declineRequestButton.setAttribute("data-request-url", fullUrlOrigin + "/friends/friend_request_decline/");
                     declineRequestButton.setAttribute("data-friend-request-id", data.friend_request_id);
@@ -779,7 +792,8 @@
                 } else if (data.status == "friend request accepted") {
 
                     let friendNotificationMessage = document.createElement('span');
-                    friendNotificationMessage.classList.add("d-flex friend-notification-message");
+                    friendNotificationMessage.classList.add("d-flex");
+                    friendNotificationMessage.classList.add("friend-notification-message");
                     friendNotificationMessage.textContent = "accepted your friend request";
 
                     friendNotificationDiv.appendChild(friendNotificationMessage);
