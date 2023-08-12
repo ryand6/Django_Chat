@@ -56,7 +56,6 @@ class Account(AbstractBaseUser):
     is_active = models.BooleanField(default=True)
     profile_image = models.ImageField(max_length=255, null=True, blank=True, upload_to=get_profile_image_path, default=get_default_image_path)
     hide_email = models.BooleanField(default=True)
-    online = models.BooleanField(default=False)
     online_status = models.CharField(default="offline", max_length=15)
 
     objects = ChatAccountManager()

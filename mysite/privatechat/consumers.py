@@ -21,16 +21,6 @@ class PrivateChatRoomConsumer(AsyncWebsocketConsumer):
         self.room_group_name = f'private_chat_{self.room_id}'
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
-        user_id = user.id
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            # event
-            {
-                'type': 'send.userid',
-                'user_id': user_id,
-                'status': 'connected',
-            }
-        )
 
     async def receive(self, text_data):
         # receives JSON data from javascript function when user sends message - converts
@@ -114,21 +104,6 @@ class PrivateChatRoomConsumer(AsyncWebsocketConsumer):
                 'room_id': room_id
             })) 
 
-    async def send_userid(self, event):
-        user_id = event['user_id']
-        status = event['status']
-        online = False
-        if status == "connected":
-            online = True
-        await self.set_user_status(user_id, online)
-        await self.send(text_data=json.dumps({'user_id': user_id, 'status': status}))
-
-    @database_sync_to_async
-    def set_user_status(self, user_id, online):
-        user = Account.objects.get(pk=user_id)
-        user.online = online
-        user.save()
-
     async def save_message(self, user, message, codeFlag, language):
         await database_sync_to_async(PrivateMessages.objects.create)(
             room=self.chatroom,
@@ -190,22 +165,6 @@ class AllPrivateChatRoomsConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'room_id': room_id,
         }))
-
-    async def send_userid(self, event):
-        user_id = event['user_id']
-        status = event['status']
-        online = False
-        if status == "connected":
-            online = True
-        await self.set_user_status(user_id, online)
-        await self.send(text_data=json.dumps({'user_id': user_id, 'status': status}))
-
-    @database_sync_to_async
-    def set_user_status(self, user_id, online):
-        user = Account.objects.get(pk=user_id)
-        user.online = online
-        user.save()
-
     
     # has to be synchronous the create_chat function in the privatechat views.py
     # adds the users properly 
