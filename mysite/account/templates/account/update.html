@@ -210,8 +210,6 @@
                 "crop_height": cropHeight
             }
 
-            // show loading spinner whilst image is being cropped
-            displayLoadingSpinner(true);
             // send request via AJAX so that page isn't refreshed when POST request is made
             $.ajax({
                 type: 'POST',
@@ -235,9 +233,7 @@
                 error: function(data){
                     console.log("Error: ", data);
                 },
-                // stop showing loading spinner when crop is comnpleted
                 complete: function(data){
-                    displayLoadingSpinner(false);
                 }
             })
         }
