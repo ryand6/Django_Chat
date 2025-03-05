@@ -1,7 +1,5 @@
 from django.apps import AppConfig
 import atexit
-from account.models import Account
-
 
 class NotificationsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
@@ -12,6 +10,7 @@ class NotificationsConfig(AppConfig):
         atexit.register(self.reset_user_statuses_on_shutdown)
 
     def reset_user_statuses_on_shutdown(self):
+        from account.models import Account
         # This method will be called when the server shuts down
         users = Account.objects.all()
         for user in users:
