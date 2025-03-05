@@ -566,25 +566,51 @@
             }
         });
 
-        // Check user activity time every minute and update status if necessary
+        var awaySince = null;
+
         setInterval(function() {
             var now = new Date().getTime();
             var idle_time = now - userActivityTime;
-            if (idle_time > 15 * 60 * 1000) { 
-                // User has been idle for more than 15 mins, update status to "away"
+
+            // Step 1: Check if the user has been away for 6+ hours and mark as "offline"
+            if (awaySince && (now - awaySince > 6 * 60 * 60 * 1000)) {
                 $.ajax({
-                    url: window.location.protocol + "//" + window.location.host + "/notifications/set_user_status_away/",
+                    url: window.location.protocol + "//" + window.location.host + "/notifications/set_user_status_offline/",
                     method: "POST",
-                    data: {status: "away", "csrfmiddlewaretoken": token,},
+                    data: {status: "offline", "csrfmiddlewaretoken": token,},
                     success: function(response) {
-                        // User status updated to away
+                        console.log("User status updated to offline");
                     },
                     error: function(error) {
-                        console.log("Error updating user status to away: " + error);
+                        console.log("Error updating user status to offline: " + error);
                     }
                 });
+
+                awaySince = null; // Reset the away timer after setting offline
+            } else {
+                // Step 2: If idle for more than 15 minutes and not already away, mark as "away"
+                if (idle_time > 15 * 60 * 1000) { 
+                    if (!awaySince) {
+                        awaySince = now; // Store the first "away" timestamp
+                    }
+
+                    $.ajax({
+                        url: window.location.protocol + "//" + window.location.host + "/notifications/set_user_status_away/",
+                        method: "POST",
+                        data: {status: "away", "csrfmiddlewaretoken": token,},
+                        success: function(response) {
+                            console.log("User status updated to away");
+                        },
+                        error: function(error) {
+                            console.log("Error updating user status to away: " + error);
+                        }
+                    });
+                } else {
+                    // Reset awaySince if user becomes active again
+                    awaySince = null;
+                }
             }
-        }, 300000); // Check every 5 mins
+        }, 300000); // Check every 5 minutes
     });
 
     function runSearch(){
@@ -641,6 +667,15 @@
             }
         }
     }
+
+    window.addEventListener("beforeunload", function () {
+        $.ajax({
+            url: window.location.protocol + "//" + window.location.host + "/notifications/set_user_status_offline/",
+            method: "POST",
+            data: { "csrfmiddlewaretoken": token },
+            async: false  // Ensure request is sent before page unload
+        });
+    });
 
     if (isAuthenticated === "True") {
 
@@ -936,19 +971,6 @@
             }
         }
     }
-
-    window.addEventListener('beforeunload', function (e) {
-        requestData = {
-            "csrfmiddlewaretoken": token,
-        }
-        // Send an AJAX request to update the user's status to offline when a user closes tab with site on or navigates to different site
-        $.ajax({
-            url: window.location.protocol + "//" + window.location.host + "/notifications/set_user_status_offline/",
-            method: 'POST',
-            data: requestData,
-            async: false
-        });
-    });
 
 </script>
 

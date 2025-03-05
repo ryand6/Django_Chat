@@ -121,7 +121,9 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         if status == "connected":
             online_status = "online"
         elif status == "away":
-            online_status == "away"
+            online_status = "away"
+        elif status == "disconnected":
+            online_status = "offline"
         await self.set_user_status(user_id, online_status)
         await self.send(text_data=json.dumps({'user_id': user_id, 'status': status}))
 
